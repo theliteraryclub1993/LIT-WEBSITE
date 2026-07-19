@@ -53,7 +53,7 @@ export function AlumniPage() {
         if (!search.trim()) return alumniOnly
 
         const q = search.toLowerCase().trim()
-        return alumniOnly.filter(m => 
+        return alumniOnly.filter(m =>
             (m.name || '').toLowerCase().includes(q) ||
             (m.role || '').toLowerCase().includes(q) ||
             (m.bio || '').toLowerCase().includes(q) ||
@@ -68,15 +68,15 @@ export function AlumniPage() {
 
             {/* Hero Section */}
             <section className="relative pt-40 pb-16 overflow-hidden">
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, scale: 0.8, rotate: 10 }}
-                    animate={{ 
-                        opacity: 0.08, 
+                    animate={{
+                        opacity: 0.08,
                         scale: 1,
                         rotate: 0,
                         y: [0, 10, 0]
                     }}
-                    transition={{ 
+                    transition={{
                         opacity: { duration: 1.2 },
                         scale: { duration: 1.5, ease: "easeOut" },
                         y: {
@@ -91,9 +91,9 @@ export function AlumniPage() {
                         WebkitMaskImage: 'linear-gradient(to left, black 30%, transparent 95%)'
                     }}
                 >
-                    <img 
-                        src="/favicon.svg" 
-                        alt="" 
+                    <img
+                        src="/favicon.svg"
+                        alt=""
                         className="w-full h-full object-contain filter drop-shadow-[0_0_80px_rgba(245,158,11,0.3)]"
                     />
                 </motion.div>
@@ -146,7 +146,7 @@ export function AlumniPage() {
                                     <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
                                         <Award size={18} />
                                     </div>
-                                    <h2 className="text-h3 text-white font-bold tracking-wide">DISTINGUISHED MEMBERS</h2>
+                                    <h2 className="text-h3 text-white font-bold tracking-wide">MEMBERS</h2>
                                 </div>
                                 <span className="text-caption text-amber-400/80 font-medium">{alumniMembers.length} alumni</span>
                             </div>
