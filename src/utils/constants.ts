@@ -88,7 +88,7 @@ export const STORAGE_BUCKETS = {
 export type StorageBucket = (typeof STORAGE_BUCKETS)[keyof typeof STORAGE_BUCKETS]
 
 export const MAX_FILE_SIZES: Record<StorageBucket, number> = {
-  avatars: 2 * 1024 * 1024,           // 2MB
+  avatars: 10 * 1024 * 1024,           // 10MB
   'event-images': 5 * 1024 * 1024,     // 5MB
   gallery: 10 * 1024 * 1024,           // 10MB
   'post-images': 5 * 1024 * 1024,      // 5MB

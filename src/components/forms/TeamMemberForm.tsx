@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Input, Textarea, Select, Switch, Button, Divider, BrandIcons } from '@/components/ui'
 import { uploadFile, supabase } from '@/lib/supabase'
-import { STORAGE_BUCKETS, ALLOWED_IMAGE_TYPES, formatFileSize } from '@/utils/constants'
+import { STORAGE_BUCKETS, ALLOWED_IMAGE_TYPES, formatFileSize, MAX_FILE_SIZES } from '@/utils/constants'
 import type { TeamMember, SocialLinks } from '@/types'
 import { Loader2, Upload, X, Globe } from 'lucide-react'
 
@@ -79,8 +79,8 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
             return
         }
 
-        if (file.size > 2 * 1024 * 1024) {
-            alert(`File too large (${formatFileSize(file.size)}). Maximum 2MB.`)
+        if (file.size > MAX_FILE_SIZES.avatars) {
+            alert(`File too large (${formatFileSize(file.size)}). Maximum ${formatFileSize(MAX_FILE_SIZES.avatars)}.`)
             return
         }
 
