@@ -231,7 +231,8 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
                     label="Department"
                     placeholder="Select or type a department"
                     options={[
-                        ...departments.map(d => ({ label: d, value: d })),
+                        { label: 'Alumni (Past Member / Graduated)', value: 'Alumni' },
+                        ...Array.from(new Set(departments)).filter(d => d !== 'Alumni').map(d => ({ label: d, value: d })),
                         { label: '— Add New Department —', value: '__new__' },
                     ]}
                     value={watch('department')}
@@ -245,6 +246,11 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
                         }
                     }}
                 />
+                {watch('department') === 'Alumni' && (
+                    <p className="text-caption text-amber-400/90 bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/20">
+                        🎓 <strong>Alumni Tip:</strong> Set Role/Title to their former role or batch year (e.g., <em>"President (2022-23)"</em>, <em>"Batch of 2021"</em>, or <em>"Founding Member"</em>).
+                    </p>
+                )}
                 <Textarea
                     label="Bio"
                     placeholder="A brief bio about the member (max 500 chars)..."

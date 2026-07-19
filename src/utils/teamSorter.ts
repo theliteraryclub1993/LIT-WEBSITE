@@ -15,11 +15,20 @@ export const ROLE_ORDER = [
     'Database Manager',
     'Photography Head',
     'Assistant Coordinators',
-    'Junior Wing'
+    'Junior Wing',
+    'Alumni'
 ]
+
+export const isAlumniMember = <T extends { department?: string | null; role?: string | null }>(member: T): boolean => {
+    if (!member) return false
+    const dept = (member.department || '').toLowerCase().trim()
+    const role = (member.role || '').toLowerCase().trim()
+    return dept === 'alumni' || role.includes('alumn') || role.includes('former')
+}
 
 export const normalizeRole = (role: string): string => {
     const r = role.toLowerCase().trim()
+    if (r.includes('alumn') || r.includes('former')) return 'alumni'
     if (r.includes('president') && !r.includes('vice')) return 'student president'
     if (r.includes('vice president') || r.includes('vice-president')) return 'student vice president'
     if (r.includes('joint') || r.includes('secretar') || r.includes('secretor')) return 'joint secretaries'

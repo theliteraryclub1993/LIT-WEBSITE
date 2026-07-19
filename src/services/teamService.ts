@@ -86,7 +86,7 @@ class TeamService extends BaseService<TeamMember> {
             .order('department')
 
         if (error) throw error
-        const set = new Set(data?.map(d => d.department).filter(Boolean))
+        const set = new Set(['Alumni', ...(data?.map(d => d.department).filter(Boolean) || [])])
         return Array.from(set) as string[]
     }
 

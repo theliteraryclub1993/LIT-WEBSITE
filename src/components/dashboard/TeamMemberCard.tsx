@@ -83,7 +83,11 @@ export function TeamMemberCard({ member, onEdit, onDelete, index = 0 }: TeamMemb
                         </div>
 
                         {member.department && (
-                            <p className="text-caption text-dark-500 mt-1">{member.department}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className={`text-caption ${member.department.toLowerCase() === 'alumni' ? 'text-amber-400 font-semibold' : 'text-dark-500'}`}>
+                                    {member.department.toLowerCase() === 'alumni' ? '🎓 Alumni Member' : member.department}
+                                </span>
+                            </div>
                         )}
 
                         {member.bio && (
