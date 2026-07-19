@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Settings, Globe, Shield, Home, Info, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getSettingsByCategory, setSetting } from '@/services/settingsService'
-import { uploadFile } from '@/lib/supabase'
+import { uploadFile, supabase } from '@/lib/supabase'
 import { uploadBatchImages } from '@/lib/imageUploader'
 import { Button, Input, Select, PageLoader, Switch } from '@/components/ui'
 import toast from 'react-hot-toast'
@@ -335,6 +335,60 @@ export function SettingsPage() {
                                     checked={allowRegistrations}
                                     onChange={(checked) => setAllowRegistrations(checked)}
                                 />
+                            </div>
+
+                            <div className="pt-6 border-t border-dark-800 space-y-3">
+                                <div>
+                                    <h4 className="text-body-sm font-semibold text-white uppercase tracking-wider mb-1">
+                                        🎓 Alumni Network Utilities
+                                    </h4>
+                                    <p className="text-caption text-dark-400">
+                                        Automatically seed the 12 primary office bearers of the 2024 Alumni Batch.
+                                    </p>
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="border-amber-500/30 text-amber-400 hover:bg-amber-500/20 hover:text-white"
+                                    onClick={async () => {
+                                        const alumniList = [
+                                            { name: "Bhuvanesh M", role: "President" },
+                                            { name: "Anarghya", role: "Vice president" },
+                                            { name: "Sanjay DN", role: "Joint sec" },
+                                            { name: "Manish Madani", role: "Joint sec" },
+                                            { name: "Amulya D J", role: "Creative Director" },
+                                            { name: "Sanjana", role: "Creative Director" },
+                                            { name: "Himavanth A Bhat", role: "Event Director" },
+                                            { name: "Krutika", role: "Event Director" },
+                                            { name: "Monish", role: "Designer in Chief" },
+                                            { name: "Yashas", role: "Designer in Chief" },
+                                            { name: "Shreya J", role: "Social media Director" },
+                                            { name: "Shashank M", role: "External affairs and Sponsorship Co-ordinator" }
+                                        ];
+                                        const tid = toast.loading("Seeding 2024 alumni...");
+                                        try {
+                                            const payload = alumniList.map((item, idx) => ({
+                                                name: item.name,
+                                                role: item.role,
+                                                department: "Alumni - 2024",
+                                                order_index: idx,
+                                                is_active: true,
+                                                avatar_url: null,
+                                                bio: null,
+                                                social_links: null
+                                            }));
+                                            const { error } = await supabase.from('team_members').insert(payload);
+                                            if (error) throw new Error(error.message);
+                                            toast.success("Successfully seeded 2024 alumni!", { id: tid });
+                                            queryClient.invalidateQueries({ queryKey: ['team'] });
+                                        } catch (e: any) {
+                                            toast.error("Failed to seed: " + e.message, { id: tid });
+                                        }
+                                    }}
+                                >
+                                    Seed 2024 Alumni Members
+                                </Button>
                             </div>
                         </div>
                     )}
