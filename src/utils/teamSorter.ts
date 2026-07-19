@@ -23,7 +23,17 @@ export const isAlumniMember = <T extends { department?: string | null; role?: st
     if (!member) return false
     const dept = (member.department || '').toLowerCase().trim()
     const role = (member.role || '').toLowerCase().trim()
-    return dept === 'alumni' || role.includes('alumn') || role.includes('former')
+    return dept === 'alumni' || dept.startsWith('alumni -') || dept.startsWith('alumni-') || role.includes('alumn') || role.includes('former')
+}
+
+/**
+ * Extract the passed-out year from an alumni member's department field.
+ * e.g. "Alumni - 2024" → 2024, "Alumni" → null
+ */
+export const getAlumniBatchYear = (department: string | null | undefined): number | null => {
+    if (!department) return null
+    const match = department.match(/alumni\s*[-–]\s*(\d{4})/i)
+    return (match && match[1]) ? parseInt(match[1], 10) : null
 }
 
 export const normalizeRole = (role: string): string => {

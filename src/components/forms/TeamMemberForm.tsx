@@ -7,6 +7,7 @@ import { uploadFile, supabase } from '@/lib/supabase'
 import { STORAGE_BUCKETS, ALLOWED_IMAGE_TYPES, formatFileSize, MAX_FILE_SIZES } from '@/utils/constants'
 import type { TeamMember, SocialLinks } from '@/types'
 import { Loader2, Upload, X, Globe } from 'lucide-react'
+import { getAlumniBatchYear } from '@/utils/teamSorter'
 
 const schema = z.object({
     name: z.string().min(1, 'Name is required').max(100, 'Max 100 characters'),
@@ -54,13 +55,16 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
     const [cropperOpen, setCropperOpen] = useState(false)
     const [cropperImageSrc, setCropperImageSrc] = useState('')
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
+    const [passedOutYear, setPassedOutYear] = useState(
+        initialData?.department ? (getAlumniBatchYear(initialData.department)?.toString() || '') : ''
+    )
 
     const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<any>({
         resolver: zodResolver(schema) as any,
         defaultValues: {
             name: initialData?.name || '',
             role: initialData?.role || '',
-            department: initialData?.department || '',
+            department: (initialData?.department && initialData.department.toLowerCase().startsWith('alumni')) ? 'Alumni' : (initialData?.department || ''),
             bio: initialData?.bio || '',
             order_index: initialData?.order_index ?? 0,
             is_active: initialData?.is_active ?? true,
@@ -148,8 +152,14 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
         // Exclude social field keys from the top-level payload
         const { instagram, twitter, linkedin, youtube, website, github, ...rest } = data
 
+        let finalDept = rest.department || ''
+        if (finalDept === 'Alumni' && passedOutYear.trim()) {
+            finalDept = `Alumni - ${passedOutYear.trim()}`
+        }
+
         await onSubmit({
             ...rest,
+            department: finalDept,
             avatar_url: avatarUrl,
             social_links: socialLinks,
         } as any)
@@ -232,7 +242,9 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
                     placeholder="Select or type a department"
                     options={[
                         { label: 'Alumni (Past Member / Graduated)', value: 'Alumni' },
-                        ...Array.from(new Set(departments)).filter(d => d !== 'Alumni').map(d => ({ label: d, value: d })),
+                        ...Array.from(new Set(departments))
+                            .filter(d => d && !d.toLowerCase().startsWith('alumni'))
+                            .map(d => ({ label: d, value: d })),
                         { label: '— Add New Department —', value: '__new__' },
                     ]}
                     value={watch('department')}
@@ -247,9 +259,23 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
                     }}
                 />
                 {watch('department') === 'Alumni' && (
-                    <p className="text-caption text-amber-400/90 bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/20">
-                        🎓 <strong>Alumni Tip:</strong> Set Role/Title to their former role or batch year (e.g., <em>"President (2022-23)"</em>, <em>"Batch of 2021"</em>, or <em>"Founding Member"</em>).
-                    </p>
+                    <div className="space-y-3">
+                        <Input
+                            label="Passed Out Year"
+                            type="number"
+                            min="0"
+                            placeholder="e.g. 2024"
+                            value={passedOutYear}
+                            onChange={(e) => {
+                                const cleanVal = e.target.value.replace(/\D/g, '')
+                                setPassedOutYear(cleanVal)
+                            }}
+                            hint="Enter the year this alumnus/alumna graduated or passed out."
+                        />
+                        <p className="text-caption text-amber-400/90 bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/20">
+                            🎓 <strong>Alumni Tip:</strong> Set Role/Title to their former role (e.g., <em>"President"</em>, <em>"Creative Director"</em>, etc.).
+                        </p>
+                    </div>
                 )}
                 <Textarea
                     label="Bio"

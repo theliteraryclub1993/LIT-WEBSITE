@@ -24,7 +24,11 @@ class TeamService extends BaseService<TeamMember> {
         let query = this.query.select('*', { count: 'exact' })
 
         if (params?.department) {
-            query = query.eq('department', params.department) as never
+            if (params.department === 'Alumni') {
+                query = query.ilike('department', 'Alumni%') as never
+            } else {
+                query = query.eq('department', params.department) as never
+            }
         }
 
         if (params?.is_active !== undefined) {

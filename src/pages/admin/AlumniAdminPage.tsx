@@ -37,7 +37,7 @@ export function AlumniAdminPage() {
     const { data: inactiveCount = 0 } = useQuery({
         queryKey: ['team', 'alumni-inactive-count'],
         queryFn: async () => {
-            const res = await teamService.count(q => q.eq('is_active', false).eq('department', 'Alumni'))
+            const res = await teamService.count(q => q.eq('is_active', false).ilike('department', 'Alumni%'))
             return res.count || 0
         },
     })
@@ -45,8 +45,8 @@ export function AlumniAdminPage() {
     // Create/Update mutation
     const upsertMutation = useMutation({
         mutationFn: async (values: any) => {
-            // Always ensure department is Alumni
-            const payload = { ...values, department: 'Alumni' }
+            // Respect the department coming from the form (e.g., 'Alumni - 2024'), default to Alumni
+            const payload = { ...values, department: values.department || 'Alumni' }
             let result
             if (payload.id) {
                 const { id, ...updates } = payload
