@@ -102,7 +102,7 @@ export function AlumniPage() {
                     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-caption font-semibold uppercase tracking-widest mb-4">
                         <GraduationCap size={16} /> Hall of Fame
                     </motion.div>
-                    <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-display text-white mb-6 uppercase tracking-wider">OUR ALUMNI</motion.h1>
+                    <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-display text-white mb-6 uppercase tracking-wider">OUR ALUMNI NETWORK</motion.h1>
                     <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-body text-dark-300 leading-relaxed max-w-2xl mx-auto">
                         Honoring the leaders, creators, and visionaries who built and shaped the legacy of The Literary Club across generations.
                     </motion.p>

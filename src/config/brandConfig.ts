@@ -56,7 +56,7 @@ export const brand = {
             { label: 'About', path: '/about' },
             { label: 'Events', path: '/events' },
             { label: 'Team', path: '/team' },
-            { label: 'Alumni', path: '/alumni' },
+            { label: 'Alumni Network', path: '/alumni' },
             { label: 'Gallery', path: '/gallery' },
             { label: 'Auditions', path: '/auditions' },
         ],

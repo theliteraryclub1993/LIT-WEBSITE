@@ -1,9 +1,8 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Globe, GraduationCap, ArrowRight } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Globe } from 'lucide-react'
 import { usePublicTeamMembers } from '@/hooks/useTeamMembers'
-import { PageLoader, EmptyState, BrandIcons, Button } from '@/components/ui'
+import { PageLoader, EmptyState, BrandIcons } from '@/components/ui'
 import { sortMembersByRole, isAlumniMember } from '@/utils/teamSorter'
 
 const fadeUp = {
@@ -177,22 +176,6 @@ export function MembersPage() {
                                     ))}
                                 </div>
                             </motion.div>
-
-                            {/* Alumni Section Link Banner */}
-                            <div className="mt-16 p-8 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-dark-900/60 to-dark-900/60 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
-                                        <GraduationCap size={24} />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-h4 text-white font-bold mb-1">Our Alumni & Past Leaders</h3>
-                                        <p className="text-body-sm text-dark-300">Explore our dedicated Hall of Fame celebrating past office bearers and graduated batches.</p>
-                                    </div>
-                                </div>
-                                <Button variant="outline" className="border-amber-500/40 text-amber-400 hover:bg-amber-500/20 hover:text-white hover:border-amber-400 shrink-0" rightIcon={<ArrowRight size={16} />}>
-                                    <Link to="/alumni">Visit Alumni Page</Link>
-                                </Button>
-                            </div>
                         </div>
                     )}
                 </div>
