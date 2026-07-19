@@ -2,6 +2,7 @@ import { Pencil, Trash2, Globe } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Badge, Button, BrandIcons } from '@/components/ui'
 import type { TeamMember } from '@/types'
+import { getAlumniBatchYear } from '@/utils/teamSorter'
 
 interface TeamMemberCardProps {
     member: TeamMember
@@ -63,7 +64,10 @@ export function TeamMemberCard({ member, onEdit, onDelete, index = 0 }: TeamMemb
                                 <h3 className="text-h5 text-white truncate group-hover:text-orange-primary transition-colors">
                                     {member.name}
                                 </h3>
-                                <p className="text-caption text-orange-primary font-semibold truncate">{member.role}</p>
+                                <p className="text-caption text-orange-primary font-semibold truncate">
+                                    {member.role}
+                                    {member.department?.toLowerCase().startsWith('alumni') && getAlumniBatchYear(member.department) ? ` • ${getAlumniBatchYear(member.department)}` : ''}
+                                </p>
                             </div>
 
                             {/* Status + Actions — shown on hover */}

@@ -215,6 +215,7 @@ export function AlumniPage() {
                                                         <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col justify-end z-10">
                                                             <span className="text-caption text-amber-400 uppercase tracking-widest font-semibold mb-1 block">
                                                                 {member.role || 'Alumni'}
+                                                                {getAlumniBatchYear(member.department) ? ` • ${getAlumniBatchYear(member.department)}` : ''}
                                                             </span>
                                                             <h3 className="text-h4 text-white font-bold group-hover:text-amber-300 transition-colors leading-tight mb-1">
                                                                 {member.name}
