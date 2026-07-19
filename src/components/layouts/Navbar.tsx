@@ -42,7 +42,7 @@ export function Navbar() {
             if (data?.mobileLogoUrl) setMobileLogoUrl(String(data.mobileLogoUrl))
         }).catch(err => console.error('Failed to load logo URL:', err))
 
-        getSettingsByCategory('navigation').then(data => {
+        getSettingsByCategory('general').then(data => {
             if (data?.navigation_items) {
                 try {
                     const parsed = JSON.parse(String(data.navigation_items))
@@ -137,6 +137,14 @@ export function Navbar() {
                         >
                             Follow Us
                         </Button>
+                        <Link to="/contact">
+                            <Button
+                                variant="primary"
+                                size="sm"
+                            >
+                                Contact Us
+                            </Button>
+                        </Link>
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -209,7 +217,23 @@ export function Navbar() {
 
                             {/* Mobile Footer */}
                             <div className="p-5 border-t border-dark-700 space-y-3">
-                                <p className="text-caption text-dark-500 text-center">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    fullWidth
+                                    onClick={() => {
+                                        const followLink = brand.social.find(s => s.name === 'Instagram')?.url || 'https://linktr.ee/lit1993?utm_source=qr_code';
+                                        window.open(followLink, '_blank');
+                                    }}
+                                >
+                                    Follow Us
+                                </Button>
+                                <Link to="/contact" className="block w-full">
+                                    <Button variant="primary" size="sm" fullWidth>
+                                        Contact Us
+                                    </Button>
+                                </Link>
+                                <p className="text-caption text-dark-500 text-center pt-2">
                                     {brand.tagline}
                                 </p>
                             </div>

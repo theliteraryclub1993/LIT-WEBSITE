@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search, Users, ToggleLeft, ToggleRight } from 'lucide-react'
 import { teamService } from '@/services/teamService'
@@ -8,6 +8,7 @@ import { TeamMemberForm } from '@/components/forms/TeamMemberForm'
 import { Modal, Input, Button, Badge, PageLoader, EmptyState } from '@/components/ui'
 import toast from 'react-hot-toast'
 import type { TeamMember } from '@/types'
+import { sortMembersByRole } from '@/utils/teamSorter'
 
 export function TeamPage() {
     const queryClient = useQueryClient()
@@ -128,9 +129,13 @@ export function TeamPage() {
         })
     }
 
-    // Stats
+    // Stats & Role-Sorted Members
     const activeCount = membersData?.data?.filter(m => m.is_active).length || 0
     const totalPages = membersData?.count ? Math.ceil(membersData.count / pageSize) : 0
+
+    const sortedMembers = useMemo(() => {
+        return [...(membersData?.data || [])].sort(sortMembersByRole)
+    }, [membersData?.data])
 
     return (
         <div className="space-y-6">
@@ -212,7 +217,7 @@ export function TeamPage() {
             ) : (
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {membersData.data.map((member, i) => (
+                        {sortedMembers.map((member, i) => (
                             <TeamMemberCard
                                 key={member.id}
                                 member={member}

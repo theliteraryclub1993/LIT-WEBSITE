@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase';
 export async function ensureBucket(bucket: string) {
   try {
     const { error } = await (supabase.storage as any).createBucket(bucket, {
-      public: false,
+      public: true,
       allowedMimeTypes: ['image/*'],
     });
     if (error) {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Trash2, Edit2, Globe, PlusCircle } from 'lucide-react'
+import { Trash2, Edit2, Globe, PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import { uploadFile } from '@/lib/supabase'
+import { uploadBatchImages } from '@/lib/imageUploader'
 import { malnadFestService } from '@/services/malnadFestService'
 import { sponsorService } from '@/services/sponsorService'
 import { Modal, Input, Button, PageLoader, Card } from '@/components/ui'
@@ -49,6 +50,8 @@ export function MalnadFestCMS() {
                 sponsorService.getSponsors()
             ])
 
+            console.log('[MalnadFestCMS] Fetch result:', festRes)
+
             if (festRes.data) {
                 const info = festRes.data
                 setFestInfo(info)
@@ -56,18 +59,23 @@ export function MalnadFestCMS() {
                 setTheme(info.theme || '')
                 setTagline(info.tagline || '')
                 setDescription(info.description || '')
+                console.log('[MalnadFestCMS] Raw banner from DB:', info.banner)
+                console.log('[MalnadFestCMS] Banner type:', typeof info.banner)
                 if (info.banner) {
                     try {
                         const parsed = JSON.parse(info.banner)
+                        console.log('[MalnadFestCMS] Parsed banner:', parsed)
                         if (Array.isArray(parsed)) {
                             setBannerUrls(parsed)
                         } else {
                             setBannerUrls([info.banner])
                         }
                     } catch (e) {
+                        console.log('[MalnadFestCMS] Banner parse failed, using raw:', info.banner)
                         setBannerUrls([info.banner])
                     }
                 } else {
+                    console.log('[MalnadFestCMS] No banner data in DB')
                     setBannerUrls([])
                 }
                 setLogo(info.logo || '')
@@ -79,6 +87,7 @@ export function MalnadFestCMS() {
             }
             setSponsors(sponsorRes.data || [])
         } catch (err: any) {
+            console.error('[MalnadFestCMS] Fetch error:', err)
             toast.error('Error fetching CMS data')
         } finally {
             setIsLoading(false)
@@ -111,18 +120,25 @@ export function MalnadFestCMS() {
             contacts: contacts,
         }
 
+        console.log('[MalnadFestCMS] Saving payload:', payload)
+        console.log('[MalnadFestCMS] Banner URLs state:', bannerUrls)
+        console.log('[MalnadFestCMS] Banner field being saved:', payload.banner)
+
         try {
             if (festInfo) {
-                const { error } = await malnadFestService.update(festInfo.id, payload)
+                const { data, error } = await malnadFestService.update(festInfo.id, payload)
+                console.log('[MalnadFestCMS] Update result:', { data, error })
                 if (error) throw new Error(error)
                 toast.success('Fest details updated successfully!')
             } else {
-                const { error } = await malnadFestService.create(payload)
+                const { data, error } = await malnadFestService.create(payload)
+                console.log('[MalnadFestCMS] Create result:', { data, error })
                 if (error) throw new Error(error)
                 toast.success('Fest details created successfully!')
             }
             fetchData()
         } catch (err: any) {
+            console.error('[MalnadFestCMS] Save error:', err)
             toast.error(err.message || 'Failed to update details')
         } finally {
             setIsSaving(false)
@@ -266,85 +282,152 @@ export function MalnadFestCMS() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                 {/* Banner Upload */}
-                                 <div className="flex flex-col space-y-4 md:col-span-2">
-                                     <label className="block text-body-sm font-medium text-dark-200">Banner Images (Multiple Scrollable)</label>
-                                     
-                                     {bannerUrls.length > 0 && (
-                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-dark-900/40 rounded-xl border border-dark-850">
-                                             {bannerUrls.map((url, idx) => (
-                                                 <div key={idx} className="relative aspect-[21/9] rounded-lg overflow-hidden border border-dark-800 bg-dark-900 group">
-                                                     <img src={url} alt={`Banner ${idx + 1}`} className="w-full h-full object-cover" />
-                                                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
-                                                         <label className="p-1.5 bg-orange-primary hover:bg-orange-light text-white rounded-full cursor-pointer transition-colors" title="Change Image">
-                                                             <Edit2 size={12} />
-                                                             <input
-                                                                 type="file"
-                                                                 accept="image/*"
-                                                                 className="hidden"
-                                                                 onChange={async (e) => {
-                                                                     const file = e.target.files?.[0]
-                                                                     if (file) {
-                                                                         const tid = toast.loading('Replacing image...')
-                                                                         try {
-                                                                             const newUrl = await uploadFile('settings', `fest/banner_${Date.now()}_${file.name}`, file, { upsert: true })
-                                                                             if (newUrl) {
-                                                                                 setBannerUrls(prev => {
-                                                                                     const next = [...prev]
-                                                                                     next[idx] = newUrl
-                                                                                     return next
-                                                                                 })
-                                                                                 toast.success('Image replaced!', { id: tid })
-                                                                             } else {
-                                                                                 toast.error('Failed to replace image', { id: tid })
-                                                                             }
-                                                                         } catch (err) {
-                                                                             toast.error('Error replacing image', { id: tid })
-                                                                         }
-                                                                     }
-                                                                 }}
-                                                             />
-                                                         </label>
-                                                         <button
-                                                             type="button"
-                                                             onClick={() => setBannerUrls(prev => prev.filter((_, i) => i !== idx))}
-                                                             className="p-1.5 bg-red-650 hover:bg-red-700 text-white rounded-full transition-colors cursor-pointer"
-                                                             title="Remove Image"
-                                                         >
-                                                             <Trash2 size={12} />
-                                                         </button>
-                                                     </div>
-                                                 </div>
-                                             ))}
-                                         </div>
-                                     )}
+                                  {/* Banner Upload */}
+                                  <div className="flex flex-col space-y-4 md:col-span-2 border-t border-dark-800 pt-6 mt-4">
+                                      <div>
+                                          <h4 className="text-body-md font-semibold text-white uppercase tracking-wider mb-1">
+                                              Fest Banner Slideshow Images
+                                          </h4>
+                                          <p className="text-caption text-dark-400 mb-3">
+                                              Upload and manage images displayed in the Malnad Fest hero slideshow banner.
+                                          </p>
+                                      </div>
 
-                                     <div className="flex flex-col space-y-2">
-                                         <input
-                                             type="file"
-                                             accept="image/*"
-                                             multiple
-                                             onChange={async (e) => {
-                                                 const files = Array.from(e.target.files || [])
-                                                 if (files.length === 0) return
-                                                 const tid = toast.loading('Uploading banner images...')
-                                                 try {
-                                                     const urls: string[] = []
-                                                     for (const file of files) {
-                                                         const url = await uploadFile('settings', `fest/banner_${Date.now()}_${file.name}`, file, { upsert: true })
-                                                         if (url) urls.push(url)
-                                                     }
-                                                     setBannerUrls(prev => [...prev, ...urls])
-                                                     toast.success('Banners uploaded successfully!', { id: tid })
-                                                 } catch (err) {
-                                                     toast.error('Failed to upload banners', { id: tid })
-                                                 }
-                                             }}
-                                             className="text-dark-400 text-sm"
-                                         />
-                                         <p className="text-[11px] text-dark-500">You can select multiple images to upload. They will be displayed as a scrollable banner on the public page.</p>
-                                     </div>
-                                 </div>
+                                      <div className="bg-dark-900 border border-dark-800 rounded-xl p-4 space-y-2">
+                                          <label className="block text-body-sm font-semibold text-white mb-1">Upload Banner Images (Multiple Selection Supported)</label>
+                                          <input
+                                              type="file"
+                                              accept="image/*"
+                                              multiple
+                                              onChange={async (e) => {
+                                                  const files = Array.from(e.target.files || [])
+                                                  e.target.value = ''
+                                                  if (files.length === 0) return
+
+                                                  const tid = toast.loading(`Preparing ${files.length} banner image(s)...`)
+
+                                                  try {
+                                                      const urls = await uploadBatchImages('settings', 'fest_banners', files, (completed, total, name) => {
+                                                          toast.loading(`Uploaded ${completed} of ${total}: ${name}`, { id: tid })
+                                                      })
+
+                                                      if (urls && urls.length > 0) {
+                                                          setBannerUrls(prev => [...prev, ...urls])
+                                                          toast.success(`${urls.length} banner image(s) processed & added!`, { id: tid })
+                                                      } else {
+                                                          toast.error('No valid images were uploaded', { id: tid })
+                                                      }
+                                                  } catch (err: any) {
+                                                      console.error('[MalnadFestCMS] Banner upload exception:', err)
+                                                      toast.error(`Upload error: ${err?.message || 'Failed'}`, { id: tid })
+                                                  }
+                                              }}
+                                              className="block w-full text-body-sm text-dark-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-body-sm file:font-semibold file:bg-orange-primary file:text-black hover:file:bg-orange-dark cursor-pointer bg-dark-950 border border-dark-700 rounded-lg p-2"
+                                          />
+                                          <p className="text-[11px] text-dark-400">Hold Ctrl or Shift to select multiple images at once (JPG, PNG, WebP, GIF).</p>
+                                      </div>
+
+                                      {/* Preview grid */}
+                                      {bannerUrls.length > 0 ? (
+                                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-dark-900/40 rounded-xl border border-dark-850">
+                                              {bannerUrls.map((url, idx) => (
+                                                  <div key={`${url}-${idx}`} className="relative aspect-[21/9] rounded-lg overflow-hidden border border-dark-800 bg-dark-900 group">
+                                                      <img src={url} alt={`Banner ${idx + 1}`} className="w-full h-full object-cover" />
+                                                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1.5 p-2">
+                                                          {idx > 0 && (
+                                                              <button
+                                                                  type="button"
+                                                                  onClick={() => setBannerUrls(prev => {
+                                                                      if (idx <= 0) return prev
+                                                                      const next = [...prev]
+                                                                      const item = next[idx]
+                                                                      const prevItem = next[idx - 1]
+                                                                      if (item !== undefined && prevItem !== undefined) {
+                                                                          next[idx] = prevItem
+                                                                          next[idx - 1] = item
+                                                                      }
+                                                                      return next
+                                                                  })}
+                                                                  className="p-1.5 bg-dark-800 hover:bg-dark-700 text-white rounded-full transition-colors cursor-pointer"
+                                                                  title="Move Left"
+                                                              >
+                                                                  <ChevronLeft size={14} />
+                                                              </button>
+                                                          )}
+
+                                                          <label className="p-1.5 bg-dark-800 hover:bg-dark-700 text-white rounded-full transition-colors cursor-pointer" title="Replace Image">
+                                                              <Edit2 size={14} />
+                                                              <input
+                                                                  type="file"
+                                                                  accept="image/*"
+                                                                  className="hidden"
+                                                                  onChange={async (e) => {
+                                                                      const file = e.target.files?.[0]
+                                                                      if (file) {
+                                                                          const tid = toast.loading('Replacing image...')
+                                                                          try {
+                                                                              const urls = await uploadBatchImages('settings', 'fest_banners', [file])
+                                                                              if (urls && urls.length > 0 && urls[0]) {
+                                                                                  const replacementUrl = urls[0]
+                                                                                  setBannerUrls(prev => {
+                                                                                      const next = [...prev]
+                                                                                      next[idx] = replacementUrl
+                                                                                      return next
+                                                                                  })
+                                                                                  toast.success('Image replaced!', { id: tid })
+                                                                              } else {
+                                                                                  toast.error('Failed to replace image', { id: tid })
+                                                                              }
+                                                                          } catch (err) {
+                                                                              toast.error('Error replacing image', { id: tid })
+                                                                          }
+                                                                      }
+                                                                  }}
+                                                              />
+                                                          </label>
+
+                                                          {idx < bannerUrls.length - 1 && (
+                                                              <button
+                                                                  type="button"
+                                                                  onClick={() => setBannerUrls(prev => {
+                                                                      if (idx >= prev.length - 1) return prev
+                                                                      const next = [...prev]
+                                                                      const item = next[idx]
+                                                                      const nextItem = next[idx + 1]
+                                                                      if (item !== undefined && nextItem !== undefined) {
+                                                                          next[idx] = nextItem
+                                                                          next[idx + 1] = item
+                                                                      }
+                                                                      return next
+                                                                  })}
+                                                                  className="p-1.5 bg-dark-800 hover:bg-dark-700 text-white rounded-full transition-colors cursor-pointer"
+                                                                  title="Move Right"
+                                                              >
+                                                                  <ChevronRight size={14} />
+                                                              </button>
+                                                          )}
+
+                                                          <button
+                                                              type="button"
+                                                              onClick={() => setBannerUrls(prev => prev.filter((_, i) => i !== idx))}
+                                                              className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors cursor-pointer"
+                                                              title="Remove Image"
+                                                          >
+                                                              <Trash2 size={14} />
+                                                          </button>
+                                                      </div>
+                                                      <div className="absolute bottom-1.5 left-2 px-2 py-0.5 bg-black/70 rounded text-[10px] text-white font-mono">
+                                                          Slide {idx + 1}
+                                                      </div>
+                                                  </div>
+                                              ))}
+                                          </div>
+                                      ) : (
+                                          <div className="text-center py-8 rounded-lg border border-dashed border-dark-800 bg-dark-950 text-body-sm text-dark-500">
+                                              No banner images uploaded yet. Use the file selector above to add banner images.
+                                          </div>
+                                      )}
+                                  </div>
 
                                 {/* Logo Upload */}
                                 <div className="flex flex-col space-y-2">

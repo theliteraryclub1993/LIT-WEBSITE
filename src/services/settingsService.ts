@@ -21,17 +21,27 @@ export async function getSetting(key: string): Promise<Json | null> {
     return data?.value ?? null
 }
 
+const VALID_SETTING_CATEGORIES = new Set(['general', 'homepage', 'footer', 'contact', 'social', 'features', 'system'])
+
+function sanitizeCategory(category: string): string {
+    if (VALID_SETTING_CATEGORIES.has(category)) {
+        return category
+    }
+    return 'general'
+}
+
 /**
  * Fetch all settings in a category.
  */
 export async function getSettingsByCategory(category: string): Promise<Record<string, Json>> {
+    const dbCategory = sanitizeCategory(category)
     const { data, error } = await supabase
         .from('settings')
         .select('key, value')
-        .eq('category', category)
+        .eq('category', dbCategory)
 
     if (error) {
-        console.error(`[SettingsService] Error fetching settings for "${category}":`, error.message)
+        console.error(`[SettingsService] Error fetching settings for "${dbCategory}":`, error.message)
         return {}
     }
 
@@ -58,7 +68,7 @@ export async function setSetting(
             {
                 key,
                 value,
-                category,
+                category: sanitizeCategory(category),
                 updated_by: updatedBy ?? null,
             },
             { onConflict: 'key' }

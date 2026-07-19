@@ -1,47 +1,56 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { ArrowRight, Calendar, Users, BookOpen, Mic } from 'lucide-react'
 import { usePublicTeamMembers } from '@/hooks'
 import { brand } from '@/config/brandConfig'
-import { Button, Avatar, PageLoader, EmptyState } from '@/components/ui'
+import { Button, PageLoader, EmptyState, SlideshowCarousel } from '@/components/ui'
 import { getSettingsByCategory } from '@/services/settingsService'
 import heroBg from '@/assets/hero-bg.jpg'
+import malnadFestBg from '@/assets/malnad-fest-bg.png'
 
-const ROLE_ORDER = [
-    'Student President',
-    'Student Vice President',
-    'Joint Secretaries',
-    'Creative Director',
-    'Event Director',
-    'Designer in Chief',
-    'Treasurer',
-    'Co-treasurer and Social media manager',
-    'Editorial Heads',
-    'Event Manager',
-    'Event Manager and Co-editorial Head',
-    'Creative Heads',
-    'Digital Head',
-    'Database Manager',
-    'Photography Head',
-    'Assistant Coordinator',
-    'Junior Wing'
-]
+const DEFAULT_SLIDES = [heroBg, malnadFestBg]
 
-const getRolePriority = (role: string | null | undefined): number => {
-    if (!role) return 999
-    const trimmed = role.toLowerCase().trim()
-    const idx = ROLE_ORDER.findIndex(r => r.toLowerCase().trim() === trimmed)
-    return idx === -1 ? 999 : idx
-}
+import { sortMembersByRole } from '@/utils/teamSorter'
 
-const sortMembersByRole = (a: any, b: any) => {
-    const priorityA = getRolePriority(a.role)
-    const priorityB = getRolePriority(b.role)
-    if (priorityA !== priorityB) {
-        return priorityA - priorityB
+const getFeaturedHomeMembers = (members: any[] | undefined) => {
+    if (!members || !members.length) return []
+    
+    const sorted = [...members].sort(sortMembersByRole)
+    
+    const president = sorted.find(m => {
+        const r = (m.role || '').toLowerCase()
+        return r.includes('president') && !r.includes('vice')
+    })
+
+    const vicePresident = sorted.find(m => {
+        const r = (m.role || '').toLowerCase()
+        return r.includes('vice president') || r.includes('vice-president')
+    })
+
+    const jointSecretaries = sorted.filter(m => {
+        const r = (m.role || '').toLowerCase()
+        return r.includes('joint') || r.includes('secretar') || r.includes('secretor')
+    }).slice(0, 2)
+
+    const selected: any[] = []
+    if (president) selected.push(president)
+    if (vicePresident) selected.push(vicePresident)
+    jointSecretaries.forEach(js => {
+        if (!selected.some(s => s.id === js.id)) {
+            selected.push(js)
+        }
+    })
+
+    if (selected.length < 4) {
+        const additionalSecretaries = sorted.filter(m => {
+            const r = (m.role || '').toLowerCase()
+            return (r.includes('secretar') || r.includes('secretor') || r.includes('joint')) && !selected.some(s => s.id === m.id)
+        })
+        selected.push(...additionalSecretaries.slice(0, 4 - selected.length))
     }
-    return (a.name || '').localeCompare(b.name || '')
+
+    return selected.slice(0, 4)
 }
 
 const fadeUp = {
@@ -54,13 +63,33 @@ const fadeUp = {
 }
 
 export function HomePage() {
+    const navigate = useNavigate()
     const { data: teamMembers, isLoading: teamLoading } = usePublicTeamMembers()
 
     const [homeSettings, setHomeSettings] = useState<any>({})
+    const [slideshowImages, setSlideshowImages] = useState<string[]>([])
+    const [slideshowAnimation, setSlideshowAnimation] = useState<any>('simple')
 
     useEffect(() => {
         getSettingsByCategory('homepage').then(data => {
-            if (data) setHomeSettings(data)
+            if (data) {
+                setHomeSettings(data)
+                if (data.slideshowAnimation) {
+                    setSlideshowAnimation(data.slideshowAnimation)
+                }
+                if (data.slideshowImages) {
+                    try {
+                        const parsed = typeof data.slideshowImages === 'string'
+                            ? JSON.parse(data.slideshowImages)
+                            : data.slideshowImages
+                        if (Array.isArray(parsed)) {
+                            setSlideshowImages(parsed.map(String))
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse slideshow images settings:', e)
+                    }
+                }
+            }
         }).catch(err => console.error('Failed to load homepage settings:', err))
     }, [])
 
@@ -129,13 +158,22 @@ export function HomePage() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.45 }}
-                            className="flex flex-wrap gap-4"
+                            className="flex flex-wrap gap-4 z-20 relative"
                         >
-                            <Button variant="primary" size="xl" rightIcon={<ArrowRight size={18} />}>
-                                <Link to="/events">Explore Events</Link>
+                            <Button
+                                variant="primary"
+                                size="xl"
+                                rightIcon={<ArrowRight size={18} />}
+                                onClick={() => navigate('/events')}
+                            >
+                                Explore Events
                             </Button>
-                            <Button variant="outline" size="xl">
-                                <Link to="/about">Our Story</Link>
+                            <Button
+                                variant="outline"
+                                size="xl"
+                                onClick={() => navigate('/about')}
+                            >
+                                Our Story
                             </Button>
                         </motion.div>
                     </div>
@@ -215,6 +253,39 @@ export function HomePage() {
                 </div>
             </section>
 
+            {/* ==================== SLIDESHOW SECTION ==================== */}
+            <section className="py-24 bg-black relative overflow-hidden">
+                <div className="container-editorial">
+                    <motion.div
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: '-100px' }}
+                        className="text-center max-w-3xl mx-auto mb-12"
+                    >
+                        <motion.span variants={fadeUp} custom={0} className="text-overline text-orange-primary tracking-mega block mb-4">
+                            Moments
+                        </motion.span>
+                        <motion.h2 variants={fadeUp} custom={1} className="text-h1 text-white uppercase mb-4">
+                            LIT In Pictures
+                        </motion.h2>
+                        <motion.p variants={fadeUp} custom={2} className="text-body text-dark-300">
+                            A visual journey through our workshops, poetry recitals, open mics, and college fests.
+                        </motion.p>
+                    </motion.div>
+
+                    {/* Slideshow Display */}
+                    <div className="max-w-4xl mx-auto">
+                        <SlideshowCarousel
+                            slides={slideshowImages}
+                            defaultSlides={DEFAULT_SLIDES}
+                            autoRotateIntervalMs={4000}
+                            aspectRatioClass="aspect-video"
+                            animationStyle={slideshowAnimation}
+                        />
+                    </div>
+                </div>
+            </section>
+
             {/* ==================== TEAM PREVIEW ==================== */}
             <section className="py-24 lg:py-32">
                 <div className="container-editorial">
@@ -244,11 +315,8 @@ export function HomePage() {
                     ) : !teamMembers?.length ? (
                         <EmptyState title="Team coming soon" />
                     ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-2xl mx-auto">
-                            {[...teamMembers]
-                                .sort(sortMembersByRole)
-                                .slice(0, 4)
-                                .map((member, i) => (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                            {getFeaturedHomeMembers(teamMembers).map((member, i) => (
                                 <motion.div
                                     key={member.id}
                                     initial="hidden"
@@ -256,21 +324,32 @@ export function HomePage() {
                                     viewport={{ once: true }}
                                     variants={fadeUp}
                                     custom={i}
-                                    className="text-center group"
+                                    className="group relative rounded-2xl overflow-hidden border border-dark-800 bg-dark-950/80 hover:border-orange-primary/40 transition-all duration-500 flex flex-col shadow-xl"
                                 >
-                                    <div className="relative mb-4 mx-auto w-fit">
-                                        <Avatar
-                                            src={member.avatar_url}
-                                            name={member.name}
-                                            size="xl"
-                                            rounded
-                                            className="group-hover:ring-2 group-hover:ring-orange-primary/30 transition-all duration-300"
-                                        />
+                                    <div className="aspect-[3/4] w-full relative overflow-hidden bg-dark-900">
+                                        {member.avatar_url ? (
+                                            <img
+                                                src={member.avatar_url}
+                                                alt={member.name}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-dark-600 bg-dark-900 font-display text-h1 uppercase">
+                                                {member.name?.[0] || 'L'}
+                                            </div>
+                                        )}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-90" />
+
+                                        {/* Content inside overlay */}
+                                        <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col justify-end">
+                                            <span className="text-caption text-orange-primary uppercase tracking-widest font-semibold mb-1 block">
+                                                {member.role}
+                                            </span>
+                                            <h3 className="text-h4 text-white font-bold group-hover:text-orange-primary transition-colors leading-tight">
+                                                {member.name}
+                                            </h3>
+                                        </div>
                                     </div>
-                                    <h4 className="text-body-sm text-white font-medium truncate">
-                                        {member.name}
-                                    </h4>
-                                    <p className="text-caption text-dark-500 truncate">{member.role}</p>
                                 </motion.div>
                             ))}
                         </div>

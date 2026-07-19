@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { uploadFile } from '@/lib/supabase'
+import { uploadBatchImages, fileToDataUrl } from '@/lib/imageUploader'
 import { Plus, Search, Edit2, Trash2, BookOpen, ExternalLink } from 'lucide-react'
 import { noesisService } from '@/services/noesisService'
 import { useUIStore } from '@/store'
@@ -283,30 +283,79 @@ export function NoesisCMS() {
                         />
                     </div>
 
-                    <div className="space-y-2">
-  <label className="block text-body-sm font-medium text-dark-200">Cover Image</label>
-  {coverImage && (
-    <img src={coverImage} alt="Cover preview" className="w-24 h-32 object-cover rounded mb-2" />
-  )}
-  <input
-    type="file"
-    accept="image/*"
-    onChange={async (e) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        const url = await uploadFile('noesis', `covers/${file.name}`, file);
-        if (url) setCoverImage(url);
-      }
-    }}
-  />
-</div>
+                    <div className="space-y-3 bg-dark-900 border border-dark-800 p-4 rounded-xl">
+                        <label className="block text-body-sm font-semibold text-white">Cover Image</label>
+                        {coverImage && (
+                            <div className="relative w-28 aspect-[3/4] rounded-lg overflow-hidden border border-dark-700 bg-dark-950 group mb-2">
+                                <img src={coverImage} alt="Cover preview" className="w-full h-full object-cover" />
+                                <button
+                                    type="button"
+                                    onClick={() => setCoverImage('')}
+                                    className="absolute top-1 right-1 p-1 bg-red-600 hover:bg-red-700 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                    title="Remove cover"
+                                >
+                                    <Trash2 size={12} />
+                                </button>
+                            </div>
+                        )}
 
-                    <Input
-                        label="PDF File URL"
-                        value={pdfFile}
-                        onChange={(e) => setPdfFile(e.target.value)}
-                        placeholder="https://example.com/issue.pdf"
-                    />
+                        <div className="space-y-2">
+                            <label className="block text-caption text-dark-400 font-medium">Upload File (JPG, PNG, WebP)</label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0]
+                                    e.target.value = ''
+                                    if (file) {
+                                        const tid = toast.loading('Uploading & compressing cover image...')
+                                        try {
+                                            const urls = await uploadBatchImages('settings', 'noesis_covers', [file])
+                                            if (urls && urls.length > 0 && urls[0]) {
+                                                setCoverImage(urls[0])
+                                                toast.success('Cover image uploaded!', { id: tid })
+                                            } else {
+                                                const dataUrl = await fileToDataUrl(file)
+                                                setCoverImage(dataUrl)
+                                                toast.success('Cover image loaded!', { id: tid })
+                                            }
+                                        } catch (err) {
+                                            try {
+                                                const dataUrl = await fileToDataUrl(file)
+                                                setCoverImage(dataUrl)
+                                                toast.success('Cover image loaded!', { id: tid })
+                                            } catch (dataErr: any) {
+                                                toast.error(`Failed to process cover image: ${dataErr?.message || 'Error'}`, { id: tid })
+                                            }
+                                        }
+                                    }
+                                }}
+                                className="block w-full text-caption text-dark-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-caption file:font-semibold file:bg-orange-primary file:text-black hover:file:bg-orange-dark cursor-pointer bg-dark-950 border border-dark-700 rounded-md p-1.5"
+                            />
+                        </div>
+
+                        <div className="space-y-1 pt-1">
+                            <span className="text-caption text-dark-400">Or paste image URL:</span>
+                            <Input
+                                value={coverImage}
+                                onChange={(e) => setCoverImage(e.target.value)}
+                                placeholder="https://example.com/cover.jpg"
+                                size="sm"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <Input
+                            label="PDF / Google Drive Document Link"
+                            value={pdfFile}
+                            onChange={(e) => setPdfFile(e.target.value)}
+                            placeholder="https://drive.google.com/file/d/.../view or https://example.com/issue.pdf"
+                        />
+                        <span className="text-[11px] text-dark-400 mt-1 block">
+                            💡 <strong>Google Drive Support</strong>: Paste your Google Drive sharing link here. Ensure access is set to <em>"Anyone with the link can view"</em>.
+                        </span>
+                    </div>
 
                     <div>
                         <label className="block text-body-sm font-medium text-dark-200 mb-1">Description</label>

@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Settings, Globe, Shield, Home, Info } from 'lucide-react'
+import { Settings, Globe, Shield, Home, Info, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getSettingsByCategory, setSetting } from '@/services/settingsService'
 import { uploadFile } from '@/lib/supabase'
+import { uploadBatchImages } from '@/lib/imageUploader'
 import { Button, Input, Select, PageLoader, Switch } from '@/components/ui'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '@/store'
@@ -53,6 +55,8 @@ export function SettingsPage() {
     const [aboutSectionImagePreview, setAboutSectionImagePreview] = useState<string>('')
     const [welcomeSectionImageFile, setWelcomeSectionImageFile] = useState<File | null>(null)
     const [welcomeSectionImagePreview, setWelcomeSectionImagePreview] = useState<string>('')
+    const [slideshowImages, setSlideshowImages] = useState<string[]>([])
+    const [isUploadingSlideshow, setIsUploadingSlideshow] = useState(false)
 
     // Form fields - About Page CMS
     const [aboutEstablished, setAboutEstablished] = useState('Established 1993')
@@ -108,6 +112,18 @@ export function SettingsPage() {
             setStatYears(String(homepage.statYears))
             setStatEvents(String(homepage.statEvents))
             setStatMembers(String(homepage.statMembers))
+            if (homepage.slideshowImages) {
+                try {
+                    const parsed = typeof homepage.slideshowImages === 'string'
+                        ? JSON.parse(homepage.slideshowImages)
+                        : homepage.slideshowImages
+                    if (Array.isArray(parsed)) {
+                        setSlideshowImages(parsed.map(String))
+                    }
+                } catch (e) {
+                    console.error('Failed to parse slideshow images settings:', e)
+                }
+            }
             // Set previews if URLs exist
             if (homepage.logoUrl) setLogoPreview(String(homepage.logoUrl))
             if (homepage.backgroundUrl) setBackgroundPreview(String(homepage.backgroundUrl))
@@ -199,19 +215,20 @@ export function SettingsPage() {
                 }
 
                 await Promise.all([
-                     setSetting('heroTitle', homepageHeroTitle, 'homepage', user?.id),
-                     setSetting('heroSubtext', homepageHeroSubtext, 'homepage', user?.id),
-                     setSetting('statYears', statYears, 'homepage', user?.id),
-                     setSetting('statEvents', statEvents, 'homepage', user?.id),
-                     setSetting('statMembers', statMembers, 'homepage', user?.id),
-                     ...(finalLogoUrl ? [setSetting('logoUrl', finalLogoUrl, 'homepage', user?.id)] : []),
-                     ...(finalBgUrl ? [setSetting('backgroundUrl', finalBgUrl, 'homepage', user?.id)] : []),
-                     ...(finalMobileLogoUrl ? [setSetting('mobileLogoUrl', finalMobileLogoUrl, 'homepage', user?.id)] : []),
-                     ...(finalFooterLogoUrl ? [setSetting('footerLogoUrl', finalFooterLogoUrl, 'homepage', user?.id)] : []),
-                     ...(finalHeroBannerUrl ? [setSetting('heroBannerUrl', finalHeroBannerUrl, 'homepage', user?.id)] : []),
-                     ...(finalAboutImgUrl ? [setSetting('aboutSectionImageUrl', finalAboutImgUrl, 'homepage', user?.id)] : []),
-                     ...(finalWelcomeImgUrl ? [setSetting('welcomeSectionImageUrl', finalWelcomeImgUrl, 'homepage', user?.id)] : [])
-                ])
+                      setSetting('heroTitle', homepageHeroTitle, 'homepage', user?.id),
+                      setSetting('heroSubtext', homepageHeroSubtext, 'homepage', user?.id),
+                      setSetting('statYears', statYears, 'homepage', user?.id),
+                      setSetting('statEvents', statEvents, 'homepage', user?.id),
+                      setSetting('statMembers', statMembers, 'homepage', user?.id),
+                      setSetting('slideshowImages', JSON.stringify(slideshowImages), 'homepage', user?.id),
+                      ...(finalLogoUrl ? [setSetting('logoUrl', finalLogoUrl, 'homepage', user?.id)] : []),
+                      ...(finalBgUrl ? [setSetting('backgroundUrl', finalBgUrl, 'homepage', user?.id)] : []),
+                      ...(finalMobileLogoUrl ? [setSetting('mobileLogoUrl', finalMobileLogoUrl, 'homepage', user?.id)] : []),
+                      ...(finalFooterLogoUrl ? [setSetting('footerLogoUrl', finalFooterLogoUrl, 'homepage', user?.id)] : []),
+                      ...(finalHeroBannerUrl ? [setSetting('heroBannerUrl', finalHeroBannerUrl, 'homepage', user?.id)] : []),
+                      ...(finalAboutImgUrl ? [setSetting('aboutSectionImageUrl', finalAboutImgUrl, 'homepage', user?.id)] : []),
+                      ...(finalWelcomeImgUrl ? [setSetting('welcomeSectionImageUrl', finalWelcomeImgUrl, 'homepage', user?.id)] : [])
+                 ])
             } else if (activeTab === 'about') {
                 await Promise.all([
                     setSetting('established', aboutEstablished, 'about', user?.id),
@@ -512,6 +529,164 @@ export function SettingsPage() {
                                     value={statMembers}
                                     onChange={(e) => setStatMembers(e.target.value)}
                                 />
+                            </div>
+
+                            {/* Slideshow Manager */}
+                            <div className="border-t border-dark-800 pt-6 mt-6 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h4 className="text-body-md font-semibold text-white uppercase tracking-wider mb-1">
+                                            Homepage Slideshow Banners
+                                        </h4>
+                                        <p className="text-caption text-dark-400 mb-3">
+                                            Upload and manage images displayed in the Home Page hero slideshow section.
+                                        </p>
+                                    </div>
+                                    <Link
+                                        to="/admin/slideshow"
+                                        className="px-3 py-1.5 bg-orange-primary/10 hover:bg-orange-primary/20 text-orange-primary text-caption rounded-lg border border-orange-primary/20 font-medium transition-colors"
+                                    >
+                                        Open Full Slideshow CMS &rarr;
+                                    </Link>
+                                </div>
+
+                                <div className="bg-dark-900 border border-dark-800 rounded-xl p-4 space-y-2">
+                                    <label className="block text-body-sm font-semibold text-white mb-1">
+                                        {isUploadingSlideshow ? 'Compressing & Uploading Images...' : 'Upload Slideshow Images (Multiple Selection Supported)'}
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        onChange={async (e) => {
+                                            const files = Array.from(e.target.files || [])
+                                            e.target.value = ''
+                                            if (files.length === 0) return
+
+                                            const tid = toast.loading(`Preparing ${files.length} slideshow image(s)...`)
+                                            try {
+                                                setIsUploadingSlideshow(true)
+                                                const urls = await uploadBatchImages('settings', 'homepage_slideshow', files, (completed, total, name) => {
+                                                    toast.loading(`Uploaded ${completed} of ${total}: ${name}`, { id: tid })
+                                                })
+                                                if (urls && urls.length > 0) {
+                                                    setSlideshowImages(prev => [...prev, ...urls])
+                                                    toast.success(`${urls.length} image(s) processed & added to slideshow!`, { id: tid })
+                                                } else {
+                                                    toast.error('No valid images were uploaded', { id: tid })
+                                                }
+                                            } catch (err: any) {
+                                                console.error('[SettingsPage] Upload exception:', err)
+                                                toast.error(`Upload error: ${err?.message || 'Failed'}`, { id: tid })
+                                            } finally {
+                                                setIsUploadingSlideshow(false)
+                                            }
+                                        }}
+                                        className="block w-full text-body-sm text-dark-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-body-sm file:font-semibold file:bg-orange-primary file:text-black hover:file:bg-orange-dark cursor-pointer bg-dark-950 border border-dark-700 rounded-lg p-2"
+                                    />
+                                    <p className="text-[11px] text-dark-400">Hold Ctrl or Shift to select multiple images at once (JPG, PNG, WebP, GIF).</p>
+                                </div>
+
+                                {/* Slides grid */}
+                                {slideshowImages.length > 0 ? (
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-dark-900/40 rounded-xl border border-dark-800">
+                                        {slideshowImages.map((url, index) => (
+                                            <div key={`${url}-${index}`} className="relative group rounded-lg overflow-hidden border border-dark-700 bg-dark-950 aspect-video">
+                                                <img src={url} alt={`Slide ${index + 1}`} className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+                                                    {index > 0 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setSlideshowImages(prev => {
+                                                                if (index <= 0) return prev
+                                                                const next = [...prev]
+                                                                const item = next[index]
+                                                                const prevItem = next[index - 1]
+                                                                if (item !== undefined && prevItem !== undefined) {
+                                                                    next[index] = prevItem
+                                                                    next[index - 1] = item
+                                                                }
+                                                                return next
+                                                            })}
+                                                            className="p-1.5 bg-dark-800 hover:bg-dark-700 text-white rounded-full transition-colors cursor-pointer"
+                                                            title="Move Left"
+                                                        >
+                                                            <ChevronLeft size={14} />
+                                                        </button>
+                                                    )}
+
+                                                    <label className="p-1.5 bg-dark-800 hover:bg-dark-700 text-white rounded-full transition-colors cursor-pointer" title="Replace Image">
+                                                        <Edit2 size={14} />
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            className="hidden"
+                                                            onChange={async (e) => {
+                                                                const file = e.target.files?.[0]
+                                                                if (file) {
+                                                                    const tid = toast.loading('Replacing image...')
+                                                                    try {
+                                                                        const urls = await uploadBatchImages('settings', 'homepage_slideshow', [file])
+                                                                        if (urls && urls.length > 0 && urls[0]) {
+                                                                            const replacementUrl = urls[0]
+                                                                            setSlideshowImages(prev => {
+                                                                                const next = [...prev]
+                                                                                next[index] = replacementUrl
+                                                                                return next
+                                                                            })
+                                                                            toast.success('Image replaced!', { id: tid })
+                                                                        } else {
+                                                                            toast.error('Failed to replace image', { id: tid })
+                                                                        }
+                                                                    } catch (err) {
+                                                                        toast.error('Error replacing image', { id: tid })
+                                                                    }
+                                                                }
+                                                            }}
+                                                        />
+                                                    </label>
+
+                                                    {index < slideshowImages.length - 1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setSlideshowImages(prev => {
+                                                                if (index >= prev.length - 1) return prev
+                                                                const next = [...prev]
+                                                                const item = next[index]
+                                                                const nextItem = next[index + 1]
+                                                                if (item !== undefined && nextItem !== undefined) {
+                                                                    next[index] = nextItem
+                                                                    next[index + 1] = item
+                                                                }
+                                                                return next
+                                                            })}
+                                                            className="p-1.5 bg-dark-800 hover:bg-dark-700 text-white rounded-full transition-colors cursor-pointer"
+                                                            title="Move Right"
+                                                        >
+                                                            <ChevronRight size={14} />
+                                                        </button>
+                                                    )}
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setSlideshowImages(prev => prev.filter((_, i) => i !== index))}
+                                                        className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors cursor-pointer"
+                                                        title="Remove Image"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                                <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/70 rounded text-[10px] text-white font-mono">
+                                                    Slide {index + 1}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8 rounded-lg border border-dashed border-dark-800 bg-dark-950 text-body-sm text-dark-500">
+                                        No slideshow images configured. Default system images will be displayed on the Home Page.
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

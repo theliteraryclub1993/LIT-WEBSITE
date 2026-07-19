@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Input, Textarea, Select, Switch, Button, Divider, BrandIcons } from '@/components/ui'
+import { Input, Textarea, Select, Switch, Button, Divider, BrandIcons, ImageCropper } from '@/components/ui'
 import { uploadFile, supabase } from '@/lib/supabase'
 import { STORAGE_BUCKETS, ALLOWED_IMAGE_TYPES, formatFileSize, MAX_FILE_SIZES } from '@/utils/constants'
 import type { TeamMember, SocialLinks } from '@/types'
@@ -51,6 +51,9 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
     const [showSocials, setShowSocials] = useState(
         initialData?.social_links ? Object.values(initialData.social_links).some(Boolean) : false
     )
+    const [cropperOpen, setCropperOpen] = useState(false)
+    const [cropperImageSrc, setCropperImageSrc] = useState('')
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
     const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<any>({
         resolver: zodResolver(schema) as any,
@@ -70,7 +73,7 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
         },
     })
 
-    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
 
@@ -80,22 +83,49 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
         }
 
         if (file.size > MAX_FILE_SIZES.avatars) {
-            alert(`File too large (${formatFileSize(file.size)}). Maximum ${formatFileSize(MAX_FILE_SIZES.avatars)}.`)
+            alert(`File too large (${formatFileSize(file.size)}). Maximum ${formatFileSize(MAX_FILE_SIZES.avatars)}.`);
             return
         }
 
-        setIsUploading(true)
-        const { data: { user } } = await supabase.auth.getUser()
-        const userPrefix = user?.id ? `${user.id}/` : ''
-        const path = `${userPrefix}${Date.now()}_${file.name}`
-        const url = await uploadFile(STORAGE_BUCKETS.AVATARS, path, file, { upsert: true })
-
-        if (url) {
-            setAvatarUrl(url)
-        } else {
-            alert('Failed to upload avatar.')
+        setSelectedFile(file)
+        const reader = new FileReader()
+        reader.onload = () => {
+            if (reader.result) {
+                setCropperImageSrc(String(reader.result))
+                setCropperOpen(true)
+            }
         }
-        setIsUploading(false)
+        reader.readAsDataURL(file)
+        e.target.value = ''
+    }
+
+    const handleCropComplete = async (croppedBlob: Blob) => {
+        if (!selectedFile) return
+        setCropperOpen(false)
+        setIsUploading(true)
+
+        try {
+            const fileName = `${Date.now()}_${selectedFile.name.replace(/\.[^/.]+$/, '')}.jpg`
+            const croppedFile = new File([croppedBlob], fileName, { type: 'image/jpeg' })
+
+            const { data: { user } } = await supabase.auth.getUser()
+            const userPrefix = user?.id ? `${user.id}/` : ''
+            const path = `${userPrefix}${fileName}`
+            const url = await uploadFile(STORAGE_BUCKETS.AVATARS, path, croppedFile, { upsert: true })
+
+            if (url) {
+                setAvatarUrl(url)
+            } else {
+                alert('Failed to upload cropped avatar.')
+            }
+        } catch (err) {
+            console.error('Error during cropped avatar upload:', err)
+            alert('An error occurred during avatar upload.')
+        } finally {
+            setIsUploading(false)
+            setSelectedFile(null)
+            setCropperImageSrc('')
+        }
     }
 
     const handleFormSubmit = async (data: FormValues) => {
@@ -144,12 +174,13 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
                 <div className="flex items-center gap-6">
                     <div className="relative">
                         {avatarUrl ? (
-                            <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-dark-700 bg-dark-800">
+                            <div className="w-24 aspect-[3/4] rounded-xl overflow-hidden border-2 border-dark-700 bg-dark-800 shadow-md">
                                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                             </div>
                         ) : (
-                            <div className="w-24 h-24 rounded-xl border-2 border-dashed border-dark-700 bg-dark-950 flex items-center justify-center">
-                                <span className="text-h3 text-dark-600">?</span>
+                            <div className="w-24 aspect-[3/4] rounded-xl border-2 border-dashed border-dark-700 bg-dark-950 flex flex-col items-center justify-center gap-1 text-center p-2">
+                                <span className="text-h4 text-dark-600">3:4</span>
+                                <span className="text-[10px] text-dark-500 uppercase tracking-wider font-mono">No Image</span>
                             </div>
                         )}
                         {isUploading && (
@@ -164,7 +195,7 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
                             <input
                                 type="file"
                                 accept="image/*"
-                                onChange={handleAvatarUpload}
+                                onChange={handleAvatarFileSelect}
                                 className="hidden"
                                 id="avatar-upload"
                             />
@@ -173,9 +204,9 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
                                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dark-700 text-body-sm text-dark-300 hover:text-white hover:border-dark-500 hover:bg-dark-800 transition-all cursor-pointer"
                             >
                                 <Upload size={16} />
-                                {avatarUrl ? 'Change Avatar' : 'Upload Avatar'}
+                                {avatarUrl ? 'Crop & Change Avatar' : 'Upload & Crop Avatar'}
                             </label>
-                            <p className="text-caption text-dark-600">JPG, PNG, WebP · Max 2MB</p>
+                            <p className="text-caption text-dark-400">3:4 Portrait Ratio · Interactive Cropper · Max 2MB</p>
                         </label>
 
                         {avatarUrl && (
@@ -296,6 +327,19 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
                     {initialData ? 'Update Member' : 'Add Member'}
                 </Button>
             </div>
+
+            {cropperOpen && (
+                <ImageCropper
+                    isOpen={cropperOpen}
+                    onClose={() => {
+                        setCropperOpen(false)
+                        setSelectedFile(null)
+                        setCropperImageSrc('')
+                    }}
+                    imageSrc={cropperImageSrc}
+                    onCropComplete={handleCropComplete}
+                />
+            )}
         </form>
     )
 }

@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { BookOpen, Download, MapPin, Phone, Award, Mic, Play, Calendar } from 'lucide-react'
-import { Button, Card, Badge, EmptyState, PageLoader } from '@/components/ui'
+import { Button, Card, Badge, EmptyState, PageLoader, SlideshowCarousel } from '@/components/ui'
 import { formatDate } from '@/utils/formatDate'
 import { cn } from '@/utils/cn'
 import { noesisService } from '@/services/noesisService'
@@ -20,12 +20,8 @@ const parseBannerUrls = (banner: any): string[] => {
     } else if (typeof banner === 'string') {
         try {
             const parsed = JSON.parse(banner)
-            if (Array.isArray(parsed)) {
-                list = parsed
-            } else {
-                list = [parsed]
-            }
-        } catch (e) {
+            list = Array.isArray(parsed) ? parsed : [parsed]
+        } catch {
             list = [banner]
         }
     }
@@ -33,6 +29,7 @@ const parseBannerUrls = (banner: any): string[] => {
         .map(item => String(item).trim())
         .filter(item => item && item !== 'null' && item !== 'undefined')
 }
+
 
 export function EventsPage() {
     // Tab State: 'spark' | 'malnad' | 'noesis'
@@ -49,27 +46,52 @@ export function EventsPage() {
     const [archiveEditions, setArchiveEditions] = useState<NoesisEdition[]>([])
     const [noesisPage, setNoesisPage] = useState(1)
     const [noesisTotalCount, setNoesisTotalCount] = useState(0)
+    const [failedCoverUrls, setFailedCoverUrls] = useState<Set<string>>(new Set())
     const noesisPageSize = 6
+
+    const handlePdfView = (pdfUrl: string) => {
+        if (pdfUrl.includes('drive.google.com')) {
+            const fileIdMatch = pdfUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || pdfUrl.match(/id=([a-zA-Z0-9_-]+)/)
+            if (fileIdMatch && fileIdMatch[1]) {
+                window.open(`https://drive.google.com/file/d/${fileIdMatch[1]}/view`, '_blank', 'noopener,noreferrer')
+                return
+            }
+        }
+        window.open(pdfUrl, '_blank', 'noopener,noreferrer')
+    }
+
+    const handlePdfDownload = (pdfUrl: string, title: string) => {
+        if (pdfUrl.includes('drive.google.com')) {
+            const fileIdMatch = pdfUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || pdfUrl.match(/id=([a-zA-Z0-9_-]+)/)
+            if (fileIdMatch && fileIdMatch[1]) {
+                window.open(`https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`, '_blank', 'noopener,noreferrer')
+                return
+            }
+            window.open(pdfUrl, '_blank', 'noopener,noreferrer')
+            return
+        }
+
+        const link = document.createElement('a')
+        link.href = pdfUrl
+        link.download = `${title}.pdf`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+    }
 
     // Malnad Fest state
     const [festLoading, setFestLoading] = useState(false)
     const [festInfo, setFestInfo] = useState<MalnadFest | null>(null)
     const [sponsors, setSponsors] = useState<Sponsor[]>([])
     const [festGallery, setFestGallery] = useState<GalleryImage[]>([])
-    const [activeBannerIdx, setActiveBannerIdx] = useState(0)
 
-    const bannerUrls = parseBannerUrls(festInfo?.banner)
-    const displayBanners = bannerUrls.length > 0 ? bannerUrls : [malnadFestBg]
-
-    const handleBannerScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        const container = e.currentTarget
-        const scrollLeft = container.scrollLeft
-        const width = container.clientWidth
-        if (width > 0) {
-            const idx = Math.round(scrollLeft / width)
-            setActiveBannerIdx(idx)
-        }
-    }
+    // Memoize banner URLs so the reference is stable across renders
+    const displayBanners = useMemo(() => {
+        const parsed = parseBannerUrls(festInfo?.banner)
+        console.log('[EventsPage] festInfo.banner raw:', festInfo?.banner)
+        console.log('[EventsPage] Parsed banner URLs:', parsed)
+        return parsed.length > 0 ? parsed : [malnadFestBg]
+    }, [festInfo?.banner])
 
     // Load Spark data
     useEffect(() => {
@@ -308,30 +330,15 @@ export function EventsPage() {
                                 />
                             ) : (
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-16">
-                                    {/* Hero / Banner */}
-                                    <div className="relative rounded-3xl overflow-hidden border border-dark-800 bg-dark-950/40">
-                                        <div 
-                                            className="aspect-video md:aspect-[21/9] w-full bg-dark-900 relative flex overflow-x-auto snap-x snap-mandatory scroll-smooth hide-scrollbar"
-                                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                                            onScroll={handleBannerScroll}
-                                        >
-                                            <style>{`
-                                                .hide-scrollbar::-webkit-scrollbar {
-                                                    display: none;
-                                                }
-                                            `}</style>
-                                            {displayBanners.map((url, idx) => (
-                                                <div key={idx} className="w-full h-full shrink-0 snap-start relative">
-                                                    <img
-                                                        src={url}
-                                                        alt={`${festInfo.fest_name} Banner ${idx + 1}`}
-                                                        className="w-full h-full object-cover opacity-80"
-                                                    />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-transparent" />
-                                                </div>
-                                            ))}
-                                        </div>
-                                        
+                                    {/* Hero / Banner Slideshow */}
+                                    <div className="relative rounded-3xl overflow-hidden border border-dark-800 bg-dark-950/40 group">
+                                        <SlideshowCarousel
+                                            slides={displayBanners}
+                                            defaultSlides={[malnadFestBg]}
+                                            autoRotateIntervalMs={4000}
+                                            aspectRatioClass="aspect-video md:aspect-[21/9]"
+                                        />
+
                                         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 flex flex-col md:flex-row md:items-end justify-between gap-6 pointer-events-none z-10">
                                             <div className="space-y-3 max-w-2xl">
                                                 {festInfo.logo && (
@@ -342,20 +349,6 @@ export function EventsPage() {
                                                 <p className="text-h5 text-orange-primary font-normal font-mono italic">{festInfo.tagline}</p>
                                             </div>
                                         </div>
-
-                                        {displayBanners.length > 1 && (
-                                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-20 bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-sm pointer-events-none">
-                                                {displayBanners.map((_, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        className={cn(
-                                                            "w-1.5 h-1.5 rounded-full transition-all duration-300",
-                                                            activeBannerIdx === idx ? "bg-orange-primary w-3" : "bg-white/40"
-                                                        )}
-                                                    />
-                                                ))}
-                                            </div>
-                                        )}
                                     </div>
 
                                     {/* Description and Details */}
@@ -506,16 +499,26 @@ export function EventsPage() {
                                                     
                                                     {/* Cover Column */}
                                                     <div className="md:col-span-2 flex justify-center">
-                                                        <div className="relative aspect-[3/4] w-64 md:w-80 bg-dark-900 rounded-lg overflow-hidden shadow-2xl border border-dark-700 transform rotate-1 hover:rotate-0 transition-transform duration-500">
-                                                            {currentEdition.cover_image ? (
-                                                                <img src={currentEdition.cover_image} alt={currentEdition.title} className="w-full h-full object-cover" />
+                                                        <div className="relative aspect-[3/4] w-64 md:w-80 bg-gradient-to-br from-dark-900 via-black to-dark-950 rounded-lg overflow-hidden shadow-2xl border border-dark-700 transform rotate-1 hover:rotate-0 transition-transform duration-500">
+                                                            {currentEdition.cover_image && !failedCoverUrls.has(currentEdition.cover_image) ? (
+                                                                <img
+                                                                    src={currentEdition.cover_image}
+                                                                    alt={currentEdition.title}
+                                                                    onError={() => setFailedCoverUrls(prev => new Set(prev).add(currentEdition.cover_image!))}
+                                                                    className="w-full h-full object-contain bg-black/90"
+                                                                />
                                                             ) : (
-                                                                <div className="w-full h-full flex flex-col items-center justify-center text-dark-600 gap-2">
-                                                                    <BookOpen size={64} />
-                                                                    <span className="text-caption font-mono">NO COVER IMAGE</span>
+                                                                <div className="w-full h-full flex flex-col items-center justify-between p-6 bg-gradient-to-b from-orange-primary/10 via-black to-dark-950 border border-orange-primary/20 text-center">
+                                                                    <span className="text-overline text-orange-primary font-mono tracking-widest">{currentEdition.edition_number}</span>
+                                                                    <div className="space-y-3 my-auto">
+                                                                        <BookOpen size={48} className="text-orange-primary mx-auto" />
+                                                                        <h3 className="text-h3 text-white font-bold leading-tight drop-shadow">{currentEdition.title}</h3>
+                                                                        <p className="text-caption text-dark-400">NOESIS E-MAGAZINE</p>
+                                                                    </div>
+                                                                    <span className="text-caption text-dark-500 font-mono">{formatDate(currentEdition.publish_date, 'MMMM yyyy')}</span>
                                                                 </div>
                                                             )}
-                                                            <div className="absolute top-3 right-3">
+                                                            <div className="absolute top-3 right-3 z-10">
                                                                 <Badge variant="orange" size="sm">Current</Badge>
                                                             </div>
                                                         </div>
@@ -539,21 +542,14 @@ export function EventsPage() {
                                                             {currentEdition.pdf_file && (
                                                                 <>
                                                                     <Button 
-                                                                        onClick={() => window.open(currentEdition.pdf_file!, '_blank')}
+                                                                        onClick={() => handlePdfView(currentEdition.pdf_file!)}
                                                                         variant="primary" 
                                                                         className="gap-2 cursor-pointer"
                                                                     >
                                                                         <BookOpen size={16} /> Read Online
                                                                     </Button>
                                                                     <Button 
-                                                                        onClick={() => {
-                                                                            const link = document.createElement('a');
-                                                                            link.href = currentEdition.pdf_file!;
-                                                                            link.download = `${currentEdition.title}.pdf`;
-                                                                            document.body.appendChild(link);
-                                                                            link.click();
-                                                                            document.body.removeChild(link);
-                                                                        }}
+                                                                        onClick={() => handlePdfDownload(currentEdition.pdf_file!, currentEdition.title)}
                                                                         variant="outline" 
                                                                         className="gap-2 cursor-pointer"
                                                                     >
@@ -582,14 +578,23 @@ export function EventsPage() {
                                             <>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                                     {archiveEditions.map((edition) => (
-                                                        <Card key={edition.id} variant="bordered" padding="none" className="overflow-hidden flex flex-col h-full bg-dark-950/20">
-                                                            <div className="aspect-[4/3] bg-dark-900 relative overflow-hidden flex items-center justify-center border-b border-dark-850">
-                                                                {edition.cover_image ? (
-                                                                    <img src={edition.cover_image} alt={edition.title} className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
+                                                        <Card key={edition.id} variant="bordered" padding="none" className="overflow-hidden flex flex-col h-full bg-dark-950/20 border-dark-800">
+                                                            <div className="aspect-[3/4] bg-dark-950 relative overflow-hidden flex items-center justify-center border-b border-dark-850 p-2">
+                                                                {edition.cover_image && !failedCoverUrls.has(edition.cover_image) ? (
+                                                                    <img
+                                                                        src={edition.cover_image}
+                                                                        alt={edition.title}
+                                                                        onError={() => setFailedCoverUrls(prev => new Set(prev).add(edition.cover_image!))}
+                                                                        className="w-full h-full object-contain rounded transition-transform duration-500 hover:scale-105"
+                                                                    />
                                                                 ) : (
-                                                                    <BookOpen size={40} className="text-dark-700" />
+                                                                    <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center bg-gradient-to-b from-orange-primary/10 via-black to-dark-950 rounded">
+                                                                        <BookOpen size={36} className="text-orange-primary mb-2" />
+                                                                        <span className="text-body-sm text-white font-bold line-clamp-2 mb-1">{edition.title}</span>
+                                                                        <span className="text-caption text-dark-500 font-mono">{edition.edition_number}</span>
+                                                                    </div>
                                                                 )}
-                                                                <div className="absolute top-3 left-3">
+                                                                <div className="absolute top-3 left-3 z-10">
                                                                     <Badge variant="default" size="sm" className="font-mono">{edition.edition_number}</Badge>
                                                                 </div>
                                                             </div>
@@ -603,20 +608,13 @@ export function EventsPage() {
                                                                 {edition.pdf_file && (
                                                                     <div className="flex gap-3 pt-2">
                                                                         <button 
-                                                                            onClick={() => window.open(edition.pdf_file!, '_blank')}
+                                                                            onClick={() => handlePdfView(edition.pdf_file!)}
                                                                             className="flex-1 py-2 text-center text-body-sm font-semibold border border-dark-700 hover:border-white rounded-lg transition-colors text-white cursor-pointer"
                                                                         >
                                                                             View
                                                                         </button>
                                                                         <button 
-                                                                            onClick={() => {
-                                                                                const link = document.createElement('a');
-                                                                                link.href = edition.pdf_file!;
-                                                                                link.download = `${edition.title}.pdf`;
-                                                                                document.body.appendChild(link);
-                                                                                link.click();
-                                                                                document.body.removeChild(link);
-                                                                            }}
+                                                                            onClick={() => handlePdfDownload(edition.pdf_file!, edition.title)}
                                                                             className="flex-1 py-2 text-center text-body-sm font-semibold bg-dark-850 hover:bg-dark-700 rounded-lg transition-colors text-dark-200 cursor-pointer"
                                                                         >
                                                                             Download

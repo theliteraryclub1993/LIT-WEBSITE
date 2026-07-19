@@ -81,6 +81,7 @@ export const STORAGE_BUCKETS = {
   POST_IMAGES: 'post-images',
   CERTIFICATES: 'certificates',
   DOCUMENTS: 'documents',
+  SETTINGS: 'settings',
 } as const
 
 // ... (keep all existing constants from Phase 1)
@@ -94,6 +95,7 @@ export const MAX_FILE_SIZES: Record<StorageBucket, number> = {
   'post-images': 5 * 1024 * 1024,      // 5MB
   certificates: 2 * 1024 * 1024,       // 2MB
   documents: 10 * 1024 * 1024,         // 10MB
+  settings: 10 * 1024 * 1024,          // 10MB
 } as const
 
 export const ALLOWED_IMAGE_TYPES = [

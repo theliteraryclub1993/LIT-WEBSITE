@@ -7,7 +7,7 @@ export const brand = {
     location: 'India',
 
     contact: {
-        email: 'contact@literaryclub.in',
+        email: 'theliteraryclubmce@gmail.com',
         youtube: 'https://www.youtube.com/@theliteraryclub1971',
     },
 
@@ -68,6 +68,7 @@ export const brand = {
 
             { label: 'Auditions', path: '/admin/auditions', icon: 'mic' as const },
             { label: 'Team', path: '/admin/team', icon: 'userCog' as const },
+            { label: 'Home Slideshow', path: '/admin/slideshow', icon: 'image' as const },
             { label: 'Gallery', path: '/admin/gallery', icon: 'image' as const },
             { label: 'Media Library', path: '/admin/media', icon: 'image' as const },
             { label: 'Attendance', path: '/admin/attendance', icon: 'scanLine' as const },

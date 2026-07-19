@@ -11,6 +11,7 @@ import { EventsPage } from '@/pages/public/EventsPage'
 import { AuditionsPage } from '@/pages/public/AuditionsPage'
 import { GalleryPage } from '@/pages/public/GalleryPage'
 import { EventDetailsPage } from '@/pages/public/EventDetailsPage'
+import { ContactPage } from '@/pages/public/ContactPage'
 import { DashboardPage } from '@/pages/admin/DashboardPage'
 import { EventsPage as AdminEventsPage } from '@/pages/admin/EventsPage'
 import { AuditionsPage as AdminAuditionsPage } from '@/pages/admin/AuditionsPage'
@@ -23,6 +24,7 @@ import { SettingsPage } from '@/pages/admin/SettingsPage'
 import { AnalyticsPage } from '@/pages/admin/AnalyticsPage'
 import { NoesisCMS } from '@/pages/admin/NoesisCMS'
 import { MalnadFestCMS } from '@/pages/admin/MalnadFestCMS'
+import { SlideshowCMS } from '@/pages/admin/SlideshowCMS'
 import { MediaLibraryPage } from '@/pages/admin/MediaLibraryPage'
 import { useAuthStore } from '@/store'
 import { useEffect } from 'react'
@@ -53,6 +55,7 @@ export function AppRoutes() {
         <Route path="/team" element={<MembersPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/auditions" element={<AuditionsPage />} />
+        <Route path="/contact" element={<ContactPage />} />
       </Route>
 
       <Route path="/admin" element={<RequireAuth />}>
@@ -70,6 +73,7 @@ export function AppRoutes() {
           <Route path="analytics" element={<RoleGuard minRole="admin"><AnalyticsPage /></RoleGuard>} />
           <Route path="noesis" element={<RoleGuard minRole="contentEditor"><NoesisCMS /></RoleGuard>} />
           <Route path="malnad-fest" element={<RoleGuard minRole="eventManager"><MalnadFestCMS /></RoleGuard>} />
+          <Route path="slideshow" element={<RoleGuard minRole="contentEditor"><SlideshowCMS /></RoleGuard>} />
           <Route path="media" element={<RoleGuard minRole="contentEditor"><MediaLibraryPage /></RoleGuard>} />
         </Route>
       </Route>

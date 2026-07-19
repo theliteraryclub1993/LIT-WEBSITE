@@ -1,6 +1,6 @@
 import { Pencil, Trash2, Globe } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { Avatar, Badge, Button, BrandIcons } from '@/components/ui'
+import { Badge, Button, BrandIcons } from '@/components/ui'
 import type { TeamMember } from '@/types'
 
 interface TeamMemberCardProps {
@@ -40,14 +40,21 @@ export function TeamMemberCard({ member, onEdit, onDelete, index = 0 }: TeamMemb
 
             <div className="p-5">
                 <div className="flex items-start gap-4">
-                    {/* Avatar */}
-                    <Avatar
-                        src={member.avatar_url}
-                        name={member.name}
-                        size="lg"
-                        rounded
-                        className="shrink-0 ring-2 ring-dark-700 group-hover:ring-orange-primary/30 transition-all duration-300"
-                    />
+                    {/* 3:4 Portrait Avatar */}
+                    <div className="w-16 aspect-[3/4] rounded-lg overflow-hidden border border-dark-700 bg-dark-900 shrink-0 group-hover:border-orange-primary/40 transition-all duration-300">
+                        {member.avatar_url ? (
+                            <img
+                                src={member.avatar_url}
+                                alt={member.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                loading="lazy"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-dark-500 font-bold text-xs bg-dark-850">
+                                3:4
+                            </div>
+                        )}
+                    </div>
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">

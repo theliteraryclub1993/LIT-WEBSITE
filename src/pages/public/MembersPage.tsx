@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Globe } from 'lucide-react'
 import { usePublicTeamMembers } from '@/hooks/useTeamMembers'
 import { PageLoader, EmptyState, BrandIcons } from '@/components/ui'
+import { sortMembersByRole } from '@/utils/teamSorter'
 
 const fadeUp = {
     hidden: { opacity: 0, y: 30 },
@@ -10,42 +11,6 @@ const fadeUp = {
         opacity: 1, y: 0,
         transition: { delay: i * 0.05, duration: 0.5 },
     }),
-}
-
-const ROLE_ORDER = [
-    'Student President',
-    'Student Vice President',
-    'Joint Secretaries',
-    'Creative Director',
-    'Event Director',
-    'Designer in Chief',
-    'Treasurer',
-    'Co-treasurer and Social media manager',
-    'Editorial Heads',
-    'Event Manager',
-    'Event Manager and Co-editorial Head',
-    'Creative Heads',
-    'Digital Head',
-    'Database Manager',
-    'Photography Head',
-    'Assistant Coordinator',
-    'Junior Wing'
-]
-
-const getRolePriority = (role: string | null | undefined): number => {
-    if (!role) return 999
-    const trimmed = role.toLowerCase().trim()
-    const idx = ROLE_ORDER.findIndex(r => r.toLowerCase().trim() === trimmed)
-    return idx === -1 ? 999 : idx
-}
-
-const sortMembersByRole = (a: any, b: any) => {
-    const priorityA = getRolePriority(a.role)
-    const priorityB = getRolePriority(b.role)
-    if (priorityA !== priorityB) {
-        return priorityA - priorityB
-    }
-    return (a.name || '').localeCompare(b.name || '')
 }
 
 function SocialIcon({ platform }: { platform: string }) {
@@ -152,70 +117,57 @@ export function MembersPage() {
                                             key={member.id}
                                             variants={fadeUp}
                                             custom={mIdx + 1}
-                                            className="relative w-full rounded-2xl overflow-hidden border border-dark-800 bg-dark-950 shadow-2xl flex flex-col h-full"
+                                            className="group relative rounded-2xl overflow-hidden border border-dark-800 bg-dark-950/80 hover:border-orange-primary/40 transition-all duration-500 flex flex-col shadow-xl"
                                         >
-                                            {/* Full-bleed background avatar (above the name) */}
-                                            {member.avatar_url ? (
-                                                <div className="relative flex-grow min-h-[220px] w-full overflow-hidden border-b border-dark-850">
+                                            <div className="aspect-[3/4] w-full relative overflow-hidden bg-dark-900">
+                                                {member.avatar_url ? (
                                                     <img
                                                         src={member.avatar_url}
                                                         alt={member.name}
-                                                        className="w-full h-full object-cover"
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                                                         loading="lazy"
                                                     />
-                                                </div>
-                                            ) : (
-                                                <div className="relative flex-grow min-h-[220px] w-full bg-dark-900 border-b border-dark-800 flex items-center justify-center overflow-hidden">
-                                                    <span className="absolute text-[72px] font-heading font-bold text-dark-800/20 select-none tracking-tighter">
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-dark-600 bg-dark-900 font-display text-h1 uppercase">
                                                         {getInitials(member.name)}
-                                                    </span>
-                                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-orange-primary/5 via-transparent to-transparent opacity-30" />
-                                                </div>
-                                            )}
-
-                                            {/* Card Content - with static textured background behind the name */}
-                                            <div className="relative p-5 flex flex-col justify-between shrink-0 bg-dark-950 bg-gradient-noise">
-                                                <div className="relative z-10">
-                                                    {/* Role */}
-                                                    <div className="flex items-center gap-1.5 mb-1.5 shrink-0">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-orange-primary" />
-                                                        <span className="text-[9px] text-orange-primary font-bold uppercase tracking-ultra">
-                                                            {member.role}
-                                                        </span>
                                                     </div>
+                                                )}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-90" />
 
-                                                    {/* Aesthetic Bold Name */}
-                                                    <h3 className="font-heading text-h3 text-white uppercase tracking-wide leading-none mb-3">
+                                                {/* Content inside overlay */}
+                                                <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col justify-end z-10">
+                                                    <span className="text-caption text-orange-primary uppercase tracking-widest font-semibold mb-1 block">
+                                                        {member.role}
+                                                    </span>
+                                                    <h3 className="text-h4 text-white font-bold group-hover:text-orange-primary transition-colors leading-tight mb-1">
                                                         {member.name}
                                                     </h3>
-
-                                                    {/* Bio */}
                                                     {member.bio && (
-                                                        <p className="text-caption text-dark-300 leading-relaxed line-clamp-3 mb-4">
+                                                        <p className="text-caption text-dark-300 leading-snug line-clamp-2 mb-2">
                                                             {member.bio}
                                                         </p>
                                                     )}
-                                                </div>
 
-                                                {/* Social Links */}
-                                                {member.social_links && Object.values(member.social_links).some(Boolean) && (
-                                                    <div className="relative z-10 flex items-center gap-2 pt-3 border-t border-dark-850 mt-auto">
-                                                        {Object.entries(member.social_links).map(([platform, url]) => (
-                                                            url ? (
-                                                                <a
-                                                                    key={platform}
-                                                                    href={url}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="w-7 h-7 rounded-full bg-dark-900 border border-dark-800 text-dark-400 hover:text-orange-primary hover:border-orange-primary/30 hover:bg-orange-primary/10 flex items-center justify-center transition-all duration-300"
-                                                                    title={platform.charAt(0).toUpperCase() + platform.slice(1)}
-                                                                >
-                                                                    <SocialIcon platform={platform} />
-                                                                </a>
-                                                            ) : null
-                                                        ))}
-                                                    </div>
-                                                )}
+                                                    {/* Social Links */}
+                                                    {member.social_links && Object.values(member.social_links).some(Boolean) && (
+                                                        <div className="flex items-center gap-2 pt-2 border-t border-white/10 mt-1">
+                                                            {Object.entries(member.social_links).map(([platform, url]) => (
+                                                                url ? (
+                                                                    <a
+                                                                        key={platform}
+                                                                        href={url as string}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="w-7 h-7 rounded-full bg-black/60 border border-dark-700 text-dark-300 hover:text-orange-primary hover:border-orange-primary/30 hover:bg-orange-primary/10 flex items-center justify-center transition-all duration-300"
+                                                                        title={platform.charAt(0).toUpperCase() + platform.slice(1)}
+                                                                    >
+                                                                        <SocialIcon platform={platform} />
+                                                                    </a>
+                                                                ) : null
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </motion.div>
                                     ))}
