@@ -7,6 +7,7 @@ import { LoginPage } from '@/pages/auth/LoginPage'
 import { HomePage } from '@/pages/public/HomePage'
 import { AboutPage } from '@/pages/public/AboutPage'
 import { MembersPage } from '@/pages/public/MembersPage'
+import { AlumniPage } from '@/pages/public/AlumniPage'
 import { EventsPage } from '@/pages/public/EventsPage'
 import { AuditionsPage } from '@/pages/public/AuditionsPage'
 import { GalleryPage } from '@/pages/public/GalleryPage'
@@ -53,6 +54,7 @@ export function AppRoutes() {
         <Route path="/events" element={<EventsPage />} />
         <Route path="/events/:slug" element={<EventDetailsPage />} />
         <Route path="/team" element={<MembersPage />} />
+        <Route path="/alumni" element={<AlumniPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/auditions" element={<AuditionsPage />} />
         <Route path="/contact" element={<ContactPage />} />
