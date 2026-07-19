@@ -18,6 +18,7 @@ import {
     LogOut,
     Home,
     BookOpen,
+    GraduationCap,
     X,
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
@@ -39,6 +40,7 @@ const iconMap: Record<string, React.ReactNode> = {
     barChart3: <BarChart3 size={20} />,
     settings: <Settings size={20} />,
     bookOpen: <BookOpen size={20} />,
+    graduationCap: <GraduationCap size={20} />,
 }
 
 interface SidebarProps {

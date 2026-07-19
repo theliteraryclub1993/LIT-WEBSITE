@@ -69,6 +69,7 @@ export const brand = {
 
             { label: 'Auditions', path: '/admin/auditions', icon: 'mic' as const },
             { label: 'Team', path: '/admin/team', icon: 'userCog' as const },
+            { label: 'Alumni Network', path: '/admin/alumni', icon: 'graduationCap' as const },
             { label: 'Home Slideshow', path: '/admin/slideshow', icon: 'image' as const },
             { label: 'Gallery', path: '/admin/gallery', icon: 'image' as const },
             { label: 'Media Library', path: '/admin/media', icon: 'image' as const },

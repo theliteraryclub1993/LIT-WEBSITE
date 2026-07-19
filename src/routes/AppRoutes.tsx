@@ -17,6 +17,7 @@ import { DashboardPage } from '@/pages/admin/DashboardPage'
 import { EventsPage as AdminEventsPage } from '@/pages/admin/EventsPage'
 import { AuditionsPage as AdminAuditionsPage } from '@/pages/admin/AuditionsPage'
 import { TeamPage } from '@/pages/admin/TeamPage'
+import { AlumniAdminPage } from '@/pages/admin/AlumniAdminPage'
 import { SparkCMS } from '@/pages/admin/SparkCMS'
 import { GalleryPage as AdminGalleryPage } from '@/pages/admin/GalleryPage'
 import { AttendancePage } from '@/pages/admin/AttendancePage'
@@ -67,6 +68,7 @@ export function AppRoutes() {
 
           <Route path="auditions" element={<RoleGuard minRole="eventManager"><AdminAuditionsPage /></RoleGuard>} />
           <Route path="team" element={<RoleGuard minRole="contentEditor"><TeamPage /></RoleGuard>} />
+          <Route path="alumni" element={<RoleGuard minRole="contentEditor"><AlumniAdminPage /></RoleGuard>} />
           <Route path="spark" element={<RoleGuard minRole="contentEditor"><SparkCMS /></RoleGuard>} />
           <Route path="gallery" element={<RoleGuard minRole="contentEditor"><AdminGalleryPage /></RoleGuard>} />
           <Route path="attendance" element={<RoleGuard minRole="eventManager"><AttendancePage /></RoleGuard>} />
