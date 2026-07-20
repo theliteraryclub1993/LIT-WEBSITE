@@ -11,12 +11,14 @@ import malnadFestBg from '@/assets/malnad-fest-bg.png'
 
 const DEFAULT_SLIDES = [heroBg, malnadFestBg]
 
-import { sortMembersByRole } from '@/utils/teamSorter'
+import { sortMembersByRole, isAlumniMember, getAlumniBatchYear } from '@/utils/teamSorter'
 
-const getFeaturedHomeMembers = (members: any[] | undefined) => {
+const getCurrentLeaders = (members: any[] | undefined) => {
     if (!members || !members.length) return []
     
-    const sorted = [...members].sort(sortMembersByRole)
+    // Filter to only current (non-alumni) members
+    const currentMembers = members.filter(m => !isAlumniMember(m))
+    const sorted = [...currentMembers].sort(sortMembersByRole)
     
     const president = sorted.find(m => {
         const r = (m.role || '').toLowerCase()
@@ -41,16 +43,40 @@ const getFeaturedHomeMembers = (members: any[] | undefined) => {
             selected.push(js)
         }
     })
+    return selected
+}
 
-    if (selected.length < 4) {
-        const additionalSecretaries = sorted.filter(m => {
-            const r = (m.role || '').toLowerCase()
-            return (r.includes('secretar') || r.includes('secretor') || r.includes('joint')) && !selected.some(s => s.id === m.id)
-        })
-        selected.push(...additionalSecretaries.slice(0, 4 - selected.length))
-    }
+const getAlumni2024Leaders = (members: any[] | undefined) => {
+    if (!members || !members.length) return []
+    
+    // Filter to only 2024 batch alumni members
+    const alumni2024 = members.filter(m => isAlumniMember(m) && getAlumniBatchYear(m.department) === 2024)
+    const sorted = [...alumni2024].sort(sortMembersByRole)
+    
+    const president = sorted.find(m => {
+        const r = (m.role || '').toLowerCase()
+        return r.includes('president') && !r.includes('vice')
+    })
 
-    return selected.slice(0, 4)
+    const vicePresident = sorted.find(m => {
+        const r = (m.role || '').toLowerCase()
+        return r.includes('vice president') || r.includes('vice-president')
+    })
+
+    const jointSecretaries = sorted.filter(m => {
+        const r = (m.role || '').toLowerCase()
+        return r.includes('joint') || r.includes('secretar') || r.includes('secretor')
+    }).slice(0, 2)
+
+    const selected: any[] = []
+    if (president) selected.push(president)
+    if (vicePresident) selected.push(vicePresident)
+    jointSecretaries.forEach(js => {
+        if (!selected.some(s => s.id === js.id)) {
+            selected.push(js)
+        }
+    })
+    return selected
 }
 
 const fadeUp = {
@@ -316,7 +342,7 @@ export function HomePage() {
                         <EmptyState title="Team coming soon" />
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                            {getFeaturedHomeMembers(teamMembers).map((member, i) => (
+                            {getCurrentLeaders(teamMembers).map((member, i) => (
                                 <motion.div
                                     key={member.id}
                                     initial="hidden"
@@ -344,6 +370,77 @@ export function HomePage() {
                                         <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col justify-end">
                                             <span className="text-caption text-orange-primary uppercase tracking-widest font-semibold mb-1 block">
                                                 {member.role}
+                                            </span>
+                                            <h3 className="text-h4 text-white font-bold group-hover:text-orange-primary transition-colors leading-tight">
+                                                {member.name}
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </section>
+
+            {/* ==================== ALUMNI PREVIEW ==================== */}
+            <section className="py-24 lg:py-32 bg-dark-950/40 border-t border-dark-900">
+                <div className="container-editorial">
+                    <motion.div
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: '-100px' }}
+                        className="flex items-end justify-between mb-12"
+                    >
+                        <div>
+                            <motion.span variants={fadeUp} custom={0} className="text-overline text-orange-primary tracking-mega block mb-3">
+                                The Legacy
+                            </motion.span>
+                            <motion.h2 variants={fadeUp} custom={1} className="text-h1 text-white">
+                                Meet Our Alumni
+                            </motion.h2>
+                        </div>
+                        <motion.div variants={fadeUp} custom={2}>
+                            <Button variant="ghost" rightIcon={<ArrowRight size={14} />}>
+                                <Link to="/alumni">Full Network</Link>
+                            </Button>
+                        </motion.div>
+                    </motion.div>
+
+                    {teamLoading ? (
+                        <PageLoader />
+                    ) : !teamMembers?.length ? (
+                        <EmptyState title="Alumni records coming soon" />
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                            {getAlumni2024Leaders(teamMembers).map((member, i) => (
+                                <motion.div
+                                    key={member.id}
+                                    initial="hidden"
+                                    whileInView="visible"
+                                    viewport={{ once: true }}
+                                    variants={fadeUp}
+                                    custom={i}
+                                    className="group relative rounded-2xl overflow-hidden border border-dark-800 bg-dark-950/80 hover:border-orange-primary/40 transition-all duration-500 flex flex-col shadow-xl"
+                                >
+                                    <div className="aspect-[3/4] w-full relative overflow-hidden bg-dark-900">
+                                        {member.avatar_url ? (
+                                            <img
+                                                src={member.avatar_url}
+                                                alt={member.name}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-dark-600 bg-dark-900 font-display text-h1 uppercase">
+                                                {member.name?.[0] || 'L'}
+                                            </div>
+                                        )}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-90" />
+
+                                        {/* Content inside overlay */}
+                                        <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col justify-end">
+                                            <span className="text-caption text-orange-primary uppercase tracking-widest font-semibold mb-1 block">
+                                                {member.role} • 2024
                                             </span>
                                             <h3 className="text-h4 text-white font-bold group-hover:text-orange-primary transition-colors leading-tight">
                                                 {member.name}
