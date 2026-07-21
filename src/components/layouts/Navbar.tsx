@@ -87,29 +87,29 @@ export function Navbar() {
                     isScrolled ? 'glass-darker shadow-lg' : 'bg-transparent'
                 )}
             >
-                <nav className="container-editorial flex items-center justify-between h-16 lg:h-20">
+                <nav className="container-editorial flex items-center justify-between h-16 lg:h-20 gap-4 lg:gap-6 xl:gap-8">
                     {/* Logo */}
                     <Link
                         to="/"
-                        className="flex items-center gap-2 group shrink-0"
+                        className="flex items-center gap-3 group shrink-0"
                     >
-                        <img src={logoUrl || logo} alt="Logo" className="h-12 lg:h-14 object-contain" />
-                        <div className="hidden sm:block h-5 w-px bg-dark-600" />
-                        <span className="hidden sm:block text-caption text-dark-300 uppercase tracking-mega">
+                        <img src={logoUrl || logo} alt="Logo" className="h-10 lg:h-12 object-contain" />
+                        <div className="hidden sm:block h-4 w-px bg-dark-600" />
+                        <span className="hidden sm:block text-caption text-dark-300 uppercase tracking-widest font-medium">
                             The Literary Club
                         </span>
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <div className="hidden lg:flex items-center gap-1">
+                    <div className="hidden lg:flex items-center justify-center gap-0.5 xl:gap-2 shrink">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.path}
                                 to={link.path}
                                 className={cn(
-                                    'relative px-4 py-2 text-label uppercase tracking-widest transition-colors duration-200',
+                                    'relative px-2.5 xl:px-4 py-2 text-xs xl:text-sm uppercase tracking-wider xl:tracking-widest whitespace-nowrap transition-colors duration-200',
                                     isActive(link.path)
-                                        ? 'text-white'
+                                        ? 'text-white font-medium'
                                         : 'text-dark-300 hover:text-white'
                                 )}
                             >
@@ -126,7 +126,7 @@ export function Navbar() {
                     </div>
 
                     {/* Desktop CTA */}
-                    <div className="hidden lg:flex items-center gap-3">
+                    <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
                         <Button
                             variant="ghost"
                             size="sm"
