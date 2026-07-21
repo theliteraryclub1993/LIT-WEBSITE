@@ -8,7 +8,7 @@ import { TeamMemberForm } from '@/components/forms/TeamMemberForm'
 import { Modal, Input, Button, Badge, PageLoader, EmptyState } from '@/components/ui'
 import toast from 'react-hot-toast'
 import type { TeamMember } from '@/types'
-import { sortMembersByRole } from '@/utils/teamSorter'
+import { sortMembersByRole, isAlumniMember } from '@/utils/teamSorter'
 
 export function TeamPage() {
     const queryClient = useQueryClient()
@@ -23,35 +23,40 @@ export function TeamPage() {
     const [page, setPage] = useState(1)
     const pageSize = 12
 
-    // Fetch members
+    // Fetch members (excluding Alumni)
     const { data: membersData, isLoading: membersLoading } = useQuery({
         queryKey: ['team', 'admin', search, departmentFilter, showInactive, page],
         queryFn: () => teamService.listAdmin({
             search: search || undefined,
             department: departmentFilter || undefined,
             is_active: showInactive ? undefined : true,
+            excludeAlumni: true,
             page,
             pageSize,
         }),
     })
 
-    // Fetch total inactive count globally (for the stats badge & filter toggle)
+    // Fetch total inactive count for team members (excluding Alumni)
     const { data: inactiveCount = 0 } = useQuery({
         queryKey: ['team', 'inactive-count'],
         queryFn: async () => {
-            const res = await teamService.count(q => q.eq('is_active', false))
+            const res = await teamService.count(q =>
+                q.eq('is_active', false)
+                 .or('department.is.null,department.not.ilike.Alumni%')
+                 .not('role', 'ilike', '%alumn%')
+                 .not('role', 'ilike', '%former%')
+            )
             return res.count || 0
         },
     })
 
-    // Fetch departments
+    // Fetch departments (excluding Alumni)
     const { data: departments } = useQuery({
-        queryKey: ['team-departments'],
-        queryFn: () => teamService.getDepartments(),
+        queryKey: ['team-departments', 'exclude-alumni'],
+        queryFn: () => teamService.getDepartments({ excludeAlumni: true }),
         staleTime: 1000 * 60 * 10,
     })
 
-    // Create/Update mutation
     // Create/Update mutation
     const upsertMutation = useMutation({
         mutationFn: async (values: any) => {
@@ -130,11 +135,15 @@ export function TeamPage() {
     }
 
     // Stats & Role-Sorted Members
-    const activeCount = membersData?.data?.filter(m => m.is_active).length || 0
+    const activeCount = useMemo(() => {
+        return (membersData?.data || []).filter(m => m.is_active && !isAlumniMember(m)).length
+    }, [membersData?.data])
+
     const totalPages = membersData?.count ? Math.ceil(membersData.count / pageSize) : 0
 
     const sortedMembers = useMemo(() => {
-        return [...(membersData?.data || [])].sort(sortMembersByRole)
+        const teamOnly = (membersData?.data || []).filter(m => !isAlumniMember(m))
+        return [...teamOnly].sort(sortMembersByRole)
     }, [membersData?.data])
 
     return (

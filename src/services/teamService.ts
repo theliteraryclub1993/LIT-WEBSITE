@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { logActivity, LOG_ACTIONS, ENTITY_TYPES } from '@/services/activityLogService'
 import { deleteFile } from '@/lib/supabase'
 import type { TeamMember, TeamMemberCreateInput, TeamMemberUpdateInput, TeamMemberPublic, DepartmentGroup } from '@/types'
+import { isAlumniMember } from '@/utils/teamSorter'
 
 class TeamService extends BaseService<TeamMember> {
     constructor() {
@@ -20,15 +21,23 @@ class TeamService extends BaseService<TeamMember> {
         sortDir?: string
         page?: number
         pageSize?: number
+        excludeAlumni?: boolean
+        onlyAlumni?: boolean
     }) {
         let query = this.query.select('*', { count: 'exact' })
 
-        if (params?.department) {
-            if (params.department === 'Alumni') {
-                query = query.ilike('department', 'Alumni%') as never
-            } else {
+        if (params?.excludeAlumni) {
+            query = query.or('department.is.null,department.not.ilike.Alumni%').not('role', 'ilike', '%alumn%').not('role', 'ilike', '%former%') as never
+        } else if (params?.onlyAlumni || params?.department === 'Alumni') {
+            if (params?.department && params.department !== 'Alumni' && params.department.toLowerCase().startsWith('alumni')) {
                 query = query.eq('department', params.department) as never
+            } else {
+                query = query.or('department.ilike.Alumni%,role.ilike.%alumn%,role.ilike.%former%') as never
             }
+        }
+
+        if (params?.department && !params?.onlyAlumni && params?.department !== 'Alumni') {
+            query = query.eq('department', params.department) as never
         }
 
         if (params?.is_active !== undefined) {
@@ -51,7 +60,17 @@ class TeamService extends BaseService<TeamMember> {
 
         const { data, count, error } = await query
         if (error) return { data: [], count: null, error: error.message }
-        return { data: (data as TeamMember[]) ?? [], count, error: null }
+
+        let resultData = (data as TeamMember[]) ?? []
+
+        // Secondary safety check using isAlumniMember helper
+        if (params?.excludeAlumni) {
+            resultData = resultData.filter(m => !isAlumniMember(m))
+        } else if (params?.onlyAlumni) {
+            resultData = resultData.filter(m => isAlumniMember(m))
+        }
+
+        return { data: resultData, count: count ?? resultData.length, error: null }
     }
 
     /**
@@ -82,7 +101,7 @@ class TeamService extends BaseService<TeamMember> {
     /**
      * Fetch distinct departments.
      */
-    async getDepartments(): Promise<string[]> {
+    async getDepartments(params?: { excludeAlumni?: boolean; onlyAlumni?: boolean }): Promise<string[]> {
         const { data, error } = await supabase
             .from('team_members')
             .select('department')
@@ -90,8 +109,20 @@ class TeamService extends BaseService<TeamMember> {
             .order('department')
 
         if (error) throw error
-        const set = new Set(['Alumni', ...(data?.map(d => d.department).filter(Boolean) || [])])
-        return Array.from(set) as string[]
+
+        let depts = (data?.map(d => d.department).filter(Boolean) as string[]) || []
+
+        if (params?.excludeAlumni) {
+            depts = depts.filter(d => !d.toLowerCase().startsWith('alumni'))
+            return Array.from(new Set(depts))
+        }
+
+        if (params?.onlyAlumni) {
+            depts = depts.filter(d => d.toLowerCase().startsWith('alumni'))
+            return Array.from(new Set(depts))
+        }
+
+        return Array.from(new Set(depts))
     }
 
     /**

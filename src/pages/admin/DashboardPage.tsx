@@ -31,7 +31,7 @@ export function DashboardPage() {
             const [eventsRes, participantsRes, teamRes, applicationsRes] = await Promise.all([
                 supabase.from('events').select('id', { count: 'exact', head: true }),
                 supabase.from('participants').select('id', { count: 'exact', head: true }),
-                supabase.from('team_members').select('id', { count: 'exact', head: true }),
+                supabase.from('team_members').select('id', { count: 'exact', head: true }).or('department.is.null,department.not.ilike.Alumni%').not('role', 'ilike', '%alumn%').not('role', 'ilike', '%former%'),
                 supabase.from('audition_applications').select('id', { count: 'exact', head: true }),
             ])
 

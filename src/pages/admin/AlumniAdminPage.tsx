@@ -8,6 +8,7 @@ import { TeamMemberForm } from '@/components/forms/TeamMemberForm'
 import { Modal, Input, Button, Badge, PageLoader, EmptyState } from '@/components/ui'
 import toast from 'react-hot-toast'
 import type { TeamMember } from '@/types'
+import { isAlumniMember } from '@/utils/teamSorter'
 
 export function AlumniAdminPage() {
     const queryClient = useQueryClient()
@@ -17,27 +18,39 @@ export function AlumniAdminPage() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
     const [search, setSearch] = useState('')
+    const [batchFilter, setBatchFilter] = useState('')
     const [showInactive, setShowInactive] = useState(false)
     const [page, setPage] = useState(1)
     const pageSize = 12
 
-    // Fetch alumni members only (department = Alumni)
+    // Fetch alumni members only
     const { data: membersData, isLoading: membersLoading } = useQuery({
-        queryKey: ['team', 'admin-alumni', search, showInactive, page],
+        queryKey: ['team', 'admin-alumni', search, batchFilter, showInactive, page],
         queryFn: () => teamService.listAdmin({
             search: search || undefined,
-            department: 'Alumni',
+            department: batchFilter || undefined,
+            onlyAlumni: true,
             is_active: showInactive ? undefined : true,
             page,
             pageSize,
         }),
     })
 
+    // Fetch alumni departments / batches for filter buttons
+    const { data: alumniBatches = [] } = useQuery({
+        queryKey: ['team-alumni-batches'],
+        queryFn: () => teamService.getDepartments({ onlyAlumni: true }),
+        staleTime: 1000 * 60 * 10,
+    })
+
     // Fetch inactive alumni count
     const { data: inactiveCount = 0 } = useQuery({
         queryKey: ['team', 'alumni-inactive-count'],
         queryFn: async () => {
-            const res = await teamService.count(q => q.eq('is_active', false).ilike('department', 'Alumni%'))
+            const res = await teamService.count(q =>
+                q.eq('is_active', false)
+                 .or('department.ilike.Alumni%,role.ilike.%alumn%,role.ilike.%former%')
+            )
             return res.count || 0
         },
     })
@@ -45,7 +58,6 @@ export function AlumniAdminPage() {
     // Create/Update mutation
     const upsertMutation = useMutation({
         mutationFn: async (values: any) => {
-            // Respect the department coming from the form (e.g., 'Alumni - 2024'), default to Alumni
             const payload = { ...values, department: values.department || 'Alumni' }
             let result
             if (payload.id) {
@@ -65,6 +77,7 @@ export function AlumniAdminPage() {
             closeModal()
             queryClient.invalidateQueries({ queryKey: ['team'] })
             queryClient.invalidateQueries({ queryKey: ['team-departments'] })
+            queryClient.invalidateQueries({ queryKey: ['team-alumni-batches'] })
         },
         onError: (err) => toast.error(err.message || 'Failed to save alumni member'),
     })
@@ -82,6 +95,7 @@ export function AlumniAdminPage() {
             toast.success('Alumni member removed.')
             queryClient.invalidateQueries({ queryKey: ['team'] })
             queryClient.invalidateQueries({ queryKey: ['team-departments'] })
+            queryClient.invalidateQueries({ queryKey: ['team-alumni-batches'] })
         },
         onError: (err) => toast.error(err.message || 'Failed to delete alumni member'),
     })
@@ -122,15 +136,19 @@ export function AlumniAdminPage() {
     }
 
     // Stats
-    const activeCount = membersData?.data?.filter(m => m.is_active).length || 0
+    const activeCount = useMemo(() => {
+        return (membersData?.data || []).filter(m => m.is_active && isAlumniMember(m)).length
+    }, [membersData?.data])
+
     const totalPages = membersData?.count ? Math.ceil(membersData.count / pageSize) : 0
 
     const sortedMembers = useMemo(() => {
-        return [...(membersData?.data || [])].sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+        const alumniOnly = (membersData?.data || []).filter(m => isAlumniMember(m))
+        return [...alumniOnly].sort((a, b) => (a.name || '').localeCompare(b.name || ''))
     }, [membersData?.data])
 
     // Create a fake initialData with department pre-set to Alumni for new members
-    const formInitialData = editingMember || { department: 'Alumni' } as TeamMember
+    const formInitialData = editingMember || ({ department: 'Alumni' } as TeamMember)
 
     return (
         <div className="space-y-6">
@@ -170,21 +188,44 @@ export function AlumniAdminPage() {
                     )}
                 </div>
 
-                <div className="w-full sm:max-w-xs">
-                    <Input
-                        placeholder="Search alumni..."
-                        value={search}
-                        onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-                        leftIcon={<Search size={16} />}
-                        size="sm"
-                    />
+                <div className="flex flex-col sm:flex-row gap-3 flex-1">
+                    <div className="w-full sm:max-w-xs">
+                        <Input
+                            placeholder="Search alumni..."
+                            value={search}
+                            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+                            leftIcon={<Search size={16} />}
+                            size="sm"
+                        />
+                    </div>
+                    {alumniBatches.length > 0 && (
+                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+                            <Button
+                                variant={!batchFilter ? 'primary' : 'outline'}
+                                size="sm"
+                                onClick={() => { setBatchFilter(''); setPage(1) }}
+                            >
+                                All
+                            </Button>
+                            {alumniBatches.map(batch => (
+                                <Button
+                                    key={batch}
+                                    variant={batchFilter === batch ? 'primary' : 'outline'}
+                                    size="sm"
+                                    onClick={() => { setBatchFilter(batchFilter === batch ? '' : batch); setPage(1) }}
+                                >
+                                    {batch}
+                                </Button>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
             {/* Grid / Empty */}
             {membersLoading ? (
                 <PageLoader />
-            ) : !membersData?.data?.length ? (
+            ) : !sortedMembers.length ? (
                 <EmptyState
                     icon={<GraduationCap size={48} strokeWidth={1.5} className="text-amber-500/50" />}
                     title="No alumni members found"
@@ -212,7 +253,7 @@ export function AlumniAdminPage() {
                     {totalPages > 1 && (
                         <div className="flex items-center justify-between pt-6">
                             <p className="text-caption text-dark-500">
-                                Showing {((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, membersData.count || 0)} of {membersData.count}
+                                Showing {((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, membersData?.count || 0)} of {membersData?.count}
                             </p>
                             <div className="flex gap-2">
                                 <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Prev</Button>
