@@ -287,8 +287,8 @@ export function AboutPage() {
                         </div>
 
                         <div className="space-y-4 relative z-10">
-                            <p className="text-body-sm text-dark-100 leading-relaxed font-mono drop-shadow">
-                                WORDS · BRUSH STROKES · PIXELS
+                            <p className="text-body-sm text-dark-100 leading-relaxed font-mono drop-shadow uppercase tracking-wider font-medium">
+                                CREATIVITY | EDITORIAL | PHOTOGRAPHY
                             </p>
                             <div className="h-px bg-white/20" />
                             <div className="flex justify-between items-center text-caption text-dark-300 font-mono">
