@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Award } from 'lucide-react'
 import { getSettingsByCategory } from '@/services/settingsService'
+import noesisCardBg from '@/assets/noesis-card-bg.png'
 
 const fadeUp = {
     hidden: { opacity: 0, y: 30 },
@@ -271,20 +272,26 @@ export function AboutPage() {
             {/* Noesis Magazine Section */}
             <section className="py-24 bg-dark-950 border-t border-dark-800">
                 <div className="container-editorial max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                    <div className="relative aspect-[3/4] bg-dark-900 rounded-2xl border border-dark-800 p-6 flex flex-col justify-between overflow-hidden shadow-2xl">
-                        <div className="absolute inset-0 bg-radial-gradient from-orange-primary/10 to-transparent" />
+                    <div className="relative aspect-[3/4] bg-dark-900 rounded-2xl border border-dark-800 p-6 flex flex-col justify-between overflow-hidden shadow-2xl group transition-all duration-300 hover:border-dark-700 hover:shadow-orange-primary/10">
+                        {/* Background Image */}
+                        <img 
+                            src={noesisCardBg} 
+                            alt="Noesis E-Magazine Cover" 
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/60" />
 
                         <div className="space-y-2 relative z-10">
                             <span className="text-overline text-orange-primary tracking-widest block font-bold">ANNUAL LITERARY MAGAZINE</span>
-                            <h2 className="text-display text-white">NOESIS</h2>
+                            <h2 className="text-display text-white drop-shadow-md">NOESIS</h2>
                         </div>
 
                         <div className="space-y-4 relative z-10">
-                            <p className="text-body-sm text-dark-100 leading-relaxed font-mono">
+                            <p className="text-body-sm text-dark-100 leading-relaxed font-mono drop-shadow">
                                 WORDS · BRUSH STROKES · PIXELS
                             </p>
-                            <div className="h-px bg-dark-800" />
-                            <div className="flex justify-between items-center text-caption text-dark-500 font-mono">
+                            <div className="h-px bg-white/20" />
+                            <div className="flex justify-between items-center text-caption text-dark-300 font-mono">
                                 <span>ISSUE 2026</span>
                                 <span>MALNAD COLLEGE OF ENGINEERING</span>
                             </div>
