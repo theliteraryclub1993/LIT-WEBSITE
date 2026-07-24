@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { logActivity, LOG_ACTIONS, ENTITY_TYPES } from '@/services/activityLogService'
 import { deleteFile } from '@/lib/supabase'
 import type { TeamMember, TeamMemberCreateInput, TeamMemberUpdateInput, TeamMemberPublic, DepartmentGroup } from '@/types'
-import { isAlumniMember } from '@/utils/teamSorter'
+import { isAlumniMember, sortMembersByRole } from '@/utils/teamSorter'
 
 class TeamService extends BaseService<TeamMember> {
     constructor() {
@@ -55,12 +55,6 @@ class TeamService extends BaseService<TeamMember> {
             .order('name', { ascending: true })
             .order('created_at', { ascending: true }) as never
 
-        if (params?.page && params?.pageSize) {
-            const from = (params.page - 1) * params.pageSize
-            const to = from + params.pageSize - 1
-            query = query.range(from, to) as never
-        }
-
         const { data, count, error } = await query
         if (error) return { data: [], count: null, error: error.message }
 
@@ -73,7 +67,21 @@ class TeamService extends BaseService<TeamMember> {
             resultData = resultData.filter(m => isAlumniMember(m))
         }
 
-        return { data: resultData, count: count ?? resultData.length, error: null }
+        // Sort all matching members by official role priority first
+        resultData.sort((a, b) => {
+            const r = sortMembersByRole(a, b)
+            return params?.sortDir === 'desc' ? -r : r
+        })
+
+        const totalCount = count ?? resultData.length
+
+        if (params?.page && params?.pageSize) {
+            const from = (params.page - 1) * params.pageSize
+            const to = from + params.pageSize
+            resultData = resultData.slice(from, to)
+        }
+
+        return { data: resultData, count: totalCount, error: null }
     }
 
     /**
