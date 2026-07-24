@@ -6,8 +6,8 @@ export const ROLE_ORDER = [
     'Event Director',
     'Designer in Chief',
     'Treasurer',
-    'Co-treasurer and Social media manager',
     'Creative Heads',
+    'Co-treasurer and Social media manager',
     'Editorial Heads',
     'Event Manager',
     'Event Manager and Co-editorial Head',
@@ -44,12 +44,12 @@ export const normalizeRole = (role: string): string => {
     if (r.includes('joint') || r.includes('secretar') || r.includes('secretor')) return 'joint secretaries'
     if (r.includes('creative director')) return 'creative director'
     if (r.includes('event director')) return 'event director'
-    if (r.includes('designer in chief')) return 'designer in chief'
-    if (r.includes('co-treasurer') || r.includes('co treasurer')) return 'co-treasurer and social media manager'
+    if (r.includes('designer in chief') || r.includes('designer-in-chief')) return 'designer in chief'
     if (r === 'treasurer' || (r.includes('treasurer') && !r.includes('co'))) return 'treasurer'
     if (r.includes('creative head')) return 'creative heads'
+    if (r.includes('co-treasurer') || r.includes('co treasurer') || r.includes('social media manager')) return 'co-treasurer and social media manager'
     if (r.includes('editorial head') && !r.includes('event manager')) return 'editorial heads'
-    if (r.includes('event manager') && r.includes('co-editorial')) return 'event manager and co-editorial head'
+    if (r.includes('event manager') && (r.includes('co-editorial') || r.includes('editorial'))) return 'event manager and co-editorial head'
     if (r.includes('event manager')) return 'event manager'
     if (r.includes('digital head')) return 'digital head'
     if (r.includes('database manager')) return 'database manager'
