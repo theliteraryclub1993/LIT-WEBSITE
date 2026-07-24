@@ -103,6 +103,8 @@ export const ALLOWED_IMAGE_TYPES = [
   'image/png',
   'image/webp',
   'image/gif',
+  'image/heic',
+  'image/heif',
 ] as const
 
 export const ALLOWED_DOCUMENT_TYPES = [

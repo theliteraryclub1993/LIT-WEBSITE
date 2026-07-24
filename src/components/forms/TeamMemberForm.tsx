@@ -4,7 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Input, Textarea, Select, Switch, Button, Divider, BrandIcons, ImageCropper } from '@/components/ui'
 import { uploadFile, supabase } from '@/lib/supabase'
-import { STORAGE_BUCKETS, ALLOWED_IMAGE_TYPES, formatFileSize, MAX_FILE_SIZES } from '@/utils/constants'
+import { STORAGE_BUCKETS, formatFileSize, MAX_FILE_SIZES } from '@/utils/constants'
+import { isImageFile, processImageFile } from '@/utils/imageUtils'
 import type { TeamMember, SocialLinks } from '@/types'
 import { Loader2, Upload, X, Globe } from 'lucide-react'
 import { getAlumniBatchYear } from '@/utils/teamSorter'
@@ -77,12 +78,12 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
         },
     })
 
-    const handleAvatarFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
 
-        if (!ALLOWED_IMAGE_TYPES.includes(file.type as typeof ALLOWED_IMAGE_TYPES[number])) {
-            alert('Invalid file type. Use JPG, PNG, WebP, or GIF.')
+        if (!isImageFile(file)) {
+            alert('Invalid file type. Use JPG, PNG, WebP, GIF, or HEIC.')
             return
         }
 
@@ -91,16 +92,24 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
             return
         }
 
-        setSelectedFile(file)
-        const reader = new FileReader()
-        reader.onload = () => {
-            if (reader.result) {
-                setCropperImageSrc(String(reader.result))
-                setCropperOpen(true)
+        setIsUploading(true)
+        try {
+            const processedFile = await processImageFile(file)
+            setSelectedFile(processedFile)
+            const reader = new FileReader()
+            reader.onload = () => {
+                if (reader.result) {
+                    setCropperImageSrc(String(reader.result))
+                    setCropperOpen(true)
+                }
             }
+            reader.readAsDataURL(processedFile)
+        } catch (err: any) {
+            alert(err.message || 'An error occurred during avatar upload.')
+        } finally {
+            setIsUploading(false)
+            e.target.value = ''
         }
-        reader.readAsDataURL(file)
-        e.target.value = ''
     }
 
     const handleCropComplete = async (croppedBlob: Blob) => {
@@ -204,7 +213,7 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
                         <label className="flex items-center gap-3 cursor-pointer">
                             <input
                                 type="file"
-                                accept="image/*"
+                                accept="image/*,.heic,.heif"
                                 onChange={handleAvatarFileSelect}
                                 className="hidden"
                                 id="avatar-upload"

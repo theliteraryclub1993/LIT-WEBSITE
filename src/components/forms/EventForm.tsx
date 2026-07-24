@@ -5,7 +5,8 @@ import { z } from 'zod'
 import { Input, Textarea, Select, Switch, Button, Divider } from '@/components/ui'
 import { CustomFieldBuilder } from './CustomFieldBuilder'
 import { uploadFile } from '@/lib/supabase'
-import { STORAGE_BUCKETS, ALLOWED_IMAGE_TYPES } from '@/utils/constants'
+import { STORAGE_BUCKETS } from '@/utils/constants'
+import { isImageFile, processImageFile } from '@/utils/imageUtils'
 import type { Event, EventCustomField } from '@/types'
 import { Loader2, Upload, X } from 'lucide-react'
 
@@ -89,21 +90,27 @@ export function EventForm({ initialData, onSubmit, isLoading }: EventFormProps) 
         const file = e.target.files?.[0]
         if (!file) return
 
-        if (!ALLOWED_IMAGE_TYPES.includes(file.type as typeof ALLOWED_IMAGE_TYPES[number])) {
-            alert('Invalid file type. Use JPG, PNG, WebP, or GIF.')
+        if (!isImageFile(file)) {
+            alert('Invalid file type. Use JPG, PNG, WebP, GIF, or HEIC.')
             return
         }
 
         setIsUploading(true)
-        const path = `${Date.now()}_${file.name}`
-        const url = await uploadFile(STORAGE_BUCKETS.EVENT_IMAGES, path, file, { upsert: true })
+        try {
+            const processedFile = await processImageFile(file)
+            const path = `${Date.now()}_${processedFile.name}`
+            const url = await uploadFile(STORAGE_BUCKETS.EVENT_IMAGES, path, processedFile, { upsert: true })
 
-        if (url) {
-            setValue('cover_image', url)
-        } else {
-            alert('Failed to upload image.')
+            if (url) {
+                setValue('cover_image', url)
+            } else {
+                alert('Failed to upload image.')
+            }
+        } catch (err: any) {
+            alert(err.message || 'Failed to process image file.')
+        } finally {
+            setIsUploading(false)
         }
-        setIsUploading(false)
     }
 
     const [isUploadingDoc, setIsUploadingDoc] = useState<'rulebook' | 'brochure' | null>(null)
@@ -177,8 +184,8 @@ export function EventForm({ initialData, onSubmit, isLoading }: EventFormProps) 
                                     <span className="text-body-sm text-dark-400">
                                         {isUploading ? 'Uploading...' : 'Click to upload cover image'}
                                     </span>
-                                    <span className="text-caption text-dark-600">JPG, PNG, WebP (Max 5MB)</span>
-                                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                                    <span className="text-caption text-dark-600">JPG, PNG, WebP, HEIC (Max 5MB)</span>
+                                    <input type="file" accept="image/*,.heic,.heif" onChange={handleImageUpload} className="hidden" />
                                 </label>
                             )}
                             <input type="hidden" {...field} />

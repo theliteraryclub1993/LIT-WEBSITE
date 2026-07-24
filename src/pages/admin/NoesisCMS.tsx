@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { uploadBatchImages, fileToDataUrl } from '@/lib/imageUploader'
+import { isImageFile, processImageFile } from '@/utils/imageUtils'
 import { Plus, Search, Edit2, Trash2, BookOpen, ExternalLink } from 'lucide-react'
 import { noesisService } from '@/services/noesisService'
 import { useUIStore } from '@/store'
@@ -300,33 +301,32 @@ export function NoesisCMS() {
                         )}
 
                         <div className="space-y-2">
-                            <label className="block text-caption text-dark-400 font-medium">Upload File (JPG, PNG, WebP)</label>
+                            <label className="block text-caption text-dark-400 font-medium">Upload File (JPG, PNG, WebP, HEIC)</label>
                             <input
                                 type="file"
-                                accept="image/*"
+                                accept="image/*,.heic,.heif"
                                 onChange={async (e) => {
                                     const file = e.target.files?.[0]
                                     e.target.value = ''
                                     if (file) {
-                                        const tid = toast.loading('Uploading & compressing cover image...')
+                                        if (!isImageFile(file)) {
+                                            toast.error('Invalid image type. Use JPG, PNG, WebP, GIF, or HEIC.')
+                                            return
+                                        }
+                                        const tid = toast.loading('Uploading cover image...')
                                         try {
-                                            const urls = await uploadBatchImages('settings', 'noesis_covers', [file])
+                                            const processed = await processImageFile(file)
+                                            const urls = await uploadBatchImages('settings', 'noesis_covers', [processed])
                                             if (urls && urls.length > 0 && urls[0]) {
                                                 setCoverImage(urls[0])
                                                 toast.success('Cover image uploaded!', { id: tid })
                                             } else {
-                                                const dataUrl = await fileToDataUrl(file)
+                                                const dataUrl = await fileToDataUrl(processed)
                                                 setCoverImage(dataUrl)
                                                 toast.success('Cover image loaded!', { id: tid })
                                             }
-                                        } catch (err) {
-                                            try {
-                                                const dataUrl = await fileToDataUrl(file)
-                                                setCoverImage(dataUrl)
-                                                toast.success('Cover image loaded!', { id: tid })
-                                            } catch (dataErr: any) {
-                                                toast.error(`Failed to process cover image: ${dataErr?.message || 'Error'}`, { id: tid })
-                                            }
+                                        } catch (err: any) {
+                                            toast.error(err.message || 'Failed to process cover image', { id: tid })
                                         }
                                     }
                                 }}

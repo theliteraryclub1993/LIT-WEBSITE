@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, Upload, Image as ImageIcon, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { uploadFile } from '@/lib/supabase'
-import { STORAGE_BUCKETS, ALLOWED_IMAGE_TYPES, formatFileSize } from '@/utils/constants'
+import { STORAGE_BUCKETS, formatFileSize } from '@/utils/constants'
+import { isImageFile, processImageFile } from '@/utils/imageUtils'
 import { Button, Input, Modal, PageLoader, EmptyState, Badge } from '@/components/ui'
 import toast from 'react-hot-toast'
 import { useUIStore, useAuthStore } from '@/store'
@@ -131,12 +132,12 @@ export function GalleryPage() {
         }
     })
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const selected = e.target.files?.[0]
         if (!selected) return
 
-        if (!ALLOWED_IMAGE_TYPES.includes(selected.type as typeof ALLOWED_IMAGE_TYPES[number])) {
-            alert('Invalid file type. Use JPG, PNG, WebP, or GIF.')
+        if (!isImageFile(selected)) {
+            alert('Invalid file type. Use JPG, PNG, WebP, GIF, or HEIC.')
             return
         }
 
@@ -145,7 +146,12 @@ export function GalleryPage() {
             return
         }
 
-        setFile(selected)
+        try {
+            const processed = await processImageFile(selected)
+            setFile(processed)
+        } catch (err: any) {
+            alert(err.message || 'Failed to process image file.')
+        }
     }
 
     const handleDelete = (img: GalleryImage) => {
@@ -267,8 +273,8 @@ export function GalleryPage() {
                             <label className="flex flex-col items-center justify-center w-full aspect-video rounded-xl border-2 border-dashed border-dark-700 hover:border-dark-500 cursor-pointer bg-dark-950 group transition-colors">
                                 <Upload size={24} className="text-dark-500 mb-2 group-hover:text-dark-300 transition-colors" />
                                 <span className="text-body-sm text-dark-400 group-hover:text-dark-200 transition-colors">Click to choose image</span>
-                                <span className="text-caption text-dark-600 mt-1">JPG, PNG, WebP · Max 10MB</span>
-                                <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                                <span className="text-caption text-dark-600 mt-1">JPG, PNG, WebP, HEIC · Max 10MB</span>
+                                <input type="file" accept="image/*,.heic,.heif" onChange={handleFileChange} className="hidden" />
                             </label>
                         )}
                     </div>
