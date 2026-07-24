@@ -51,6 +51,7 @@ export interface TeamMemberPublic {
     avatar_url: string | null
     bio: string | null
     social_links: SocialLinks | null
+    order_index?: number
 }
 
 /**

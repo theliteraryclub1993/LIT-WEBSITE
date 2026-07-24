@@ -66,7 +66,7 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
             role: initialData?.role || '',
             department: (initialData?.department && initialData.department.toLowerCase().startsWith('alumni')) ? 'Alumni' : (initialData?.department || ''),
             bio: initialData?.bio || '',
-            order_index: initialData?.order_index ?? 0,
+            order_index: typeof initialData?.order_index === 'number' ? initialData.order_index : 0,
             is_active: initialData?.is_active ?? true,
             instagram: initialData?.social_links?.instagram || '',
             twitter: initialData?.social_links?.twitter || '',

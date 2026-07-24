@@ -8,7 +8,7 @@ import { TeamMemberForm } from '@/components/forms/TeamMemberForm'
 import { Modal, Input, Button, Badge, PageLoader, EmptyState } from '@/components/ui'
 import toast from 'react-hot-toast'
 import type { TeamMember } from '@/types'
-import { isAlumniMember } from '@/utils/teamSorter'
+import { isAlumniMember, sortMembersByRole } from '@/utils/teamSorter'
 
 export function AlumniAdminPage() {
     const queryClient = useQueryClient()
@@ -144,7 +144,7 @@ export function AlumniAdminPage() {
 
     const sortedMembers = useMemo(() => {
         const alumniOnly = (membersData?.data || []).filter(m => isAlumniMember(m))
-        return [...alumniOnly].sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+        return [...alumniOnly].sort(sortMembersByRole)
     }, [membersData?.data])
 
     // Create a fake initialData with department pre-set to Alumni for new members

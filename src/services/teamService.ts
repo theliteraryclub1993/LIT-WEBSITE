@@ -50,7 +50,10 @@ class TeamService extends BaseService<TeamMember> {
 
         const sortBy = params?.sortBy || 'order_index'
         const sortDir = params?.sortDir || 'asc'
-        query = query.order(sortBy, { ascending: sortDir === 'asc' }) as never
+        query = query
+            .order(sortBy, { ascending: sortDir === 'asc' })
+            .order('name', { ascending: true })
+            .order('created_at', { ascending: true }) as never
 
         if (params?.page && params?.pageSize) {
             const from = (params.page - 1) * params.pageSize
@@ -79,9 +82,10 @@ class TeamService extends BaseService<TeamMember> {
     async listPublicGrouped(): Promise<DepartmentGroup[]> {
         const { data, error } = await supabase
             .from('team_members')
-            .select('id, name, role, department, avatar_url, bio, social_links')
+            .select('id, name, role, department, avatar_url, bio, social_links, order_index')
             .eq('is_active', true)
             .order('order_index', { ascending: true })
+            .order('name', { ascending: true })
 
         if (error) throw error
 

@@ -66,11 +66,20 @@ export const getRolePriority = (role: string | null | undefined): number => {
     return idx === -1 ? 998 : idx
 }
 
-export const sortMembersByRole = <T extends { role?: string | null; name?: string | null }>(a: T, b: T): number => {
+export const sortMembersByRole = <T extends { role?: string | null; name?: string | null; order_index?: number | null; id?: string | null }>(a: T, b: T): number => {
     const priorityA = getRolePriority(a.role)
     const priorityB = getRolePriority(b.role)
     if (priorityA !== priorityB) {
         return priorityA - priorityB
     }
-    return (a.name || '').localeCompare(b.name || '')
+    const orderA = typeof a.order_index === 'number' ? a.order_index : 0
+    const orderB = typeof b.order_index === 'number' ? b.order_index : 0
+    if (orderA !== orderB) {
+        return orderA - orderB
+    }
+    const nameA = (a.name || '').trim()
+    const nameB = (b.name || '').trim()
+    const nameComp = nameA.localeCompare(nameB)
+    if (nameComp !== 0) return nameComp
+    return (a.id || '').localeCompare(b.id || '')
 }

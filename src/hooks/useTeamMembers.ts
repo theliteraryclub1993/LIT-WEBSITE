@@ -12,9 +12,10 @@ export function usePublicTeamMembers() {
         queryFn: async () => {
             const { data, error } = await supabase
                 .from('team_members')
-                .select('id, name, role, department, avatar_url, bio, social_links')
+                .select('id, name, role, department, avatar_url, bio, social_links, order_index')
                 .eq('is_active', true)
                 .order('order_index', { ascending: true })
+                .order('name', { ascending: true })
 
             if (error) throw error
             return (data ?? []) as TeamMemberPublic[]
