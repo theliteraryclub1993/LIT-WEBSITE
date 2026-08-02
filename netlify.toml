@@ -1,0 +1,9 @@
+[[redirects]]
+
+  from = "https://lit1993.netlify.app"
+
+  to = "https://lit1993.club"
+
+  status = 301
+
+  force = true
