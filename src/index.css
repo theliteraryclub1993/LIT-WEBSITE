@@ -103,9 +103,9 @@
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   /* ---- FONT SIZES — Editorial Scale ---- */
-  --font-size-display: clamp(3.5rem, 8vw + 1rem, 9rem);
-  --font-size-hero: clamp(2.5rem, 5vw + 1rem, 6rem);
-  --font-size-h1: clamp(2rem, 4vw + 0.5rem, 4.5rem);
+  --font-size-display: clamp(2.25rem, 6vw + 0.5rem, 9rem);
+  --font-size-hero: clamp(2rem, 5vw + 0.5rem, 6rem);
+  --font-size-h1: clamp(1.75rem, 4vw + 0.25rem, 4.5rem);
   --font-size-h2: clamp(1.75rem, 3vw + 0.5rem, 3rem);
   --font-size-h3: clamp(1.5rem, 2vw + 0.5rem, 2.25rem);
   --font-size-h4: clamp(1.25rem, 1.5vw + 0.25rem, 1.75rem);
@@ -396,15 +396,20 @@
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
   textarea:-webkit-autofill,
   textarea:-webkit-autofill:hover,
   textarea:-webkit-autofill:focus,
+  textarea:-webkit-autofill:active,
   select:-webkit-autofill,
   select:-webkit-autofill:hover,
-  select:-webkit-autofill:focus {
-    -webkit-text-fill-color: #ffffff;
-    -webkit-box-shadow: 0 0 0px 1000px var(--color-dark-800) inset;
-    transition: background-color 5000s ease-in-out 0s;
+  select:-webkit-autofill:focus,
+  select:-webkit-autofill:active {
+    -webkit-text-fill-color: #ffffff !important;
+    -webkit-box-shadow: 0 0 0px 1000px #1a1a1a inset !important;
+    box-shadow: 0 0 0px 1000px #1a1a1a inset !important;
+    caret-color: #ffffff !important;
+    transition: background-color 50000s ease-in-out 0s;
   }
 
   /* Focus visible */
@@ -1101,22 +1106,7 @@
     max-width: 1400px;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-
-  @media (min-width: 768px) {
-    .container-editorial {
-      padding-left: 3rem;
-      padding-right: 3rem;
-    }
-  }
-
-  @media (min-width: 1280px) {
-    .container-editorial {
-      padding-left: 4rem;
-      padding-right: 4rem;
-    }
+    padding-inline: clamp(1rem, 4vw, 3.5rem);
   }
 
   /* ---- PROSE — EDITORIAL TEXT ---- */

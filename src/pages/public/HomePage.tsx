@@ -124,7 +124,7 @@ export function HomePage() {
     const y = useTransform(scrollY, [0, 400], [0, -50])
 
     const heroTitle = homeSettings.heroTitle || 'WHERE WORDS COME ALIVE'
-    const heroDescription = homeSettings.heroSubtext || brand.description
+    const heroDescription = homeSettings.heroSubtext || 'Legacy of imagination at Malnad College of Engineering. Empowering students to think creatively, communicate confidently, and leave a lasting mark.'
 
     return (
         <div className="bg-black">
@@ -160,31 +160,19 @@ export function HomePage() {
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.7, delay: 0.15 }}
-                            className="text-display text-white leading-[0.85] mb-8 uppercase"
+                            className="text-display text-white leading-[0.9] mb-8 uppercase"
                         >
-                            {heroTitle.includes('ALIVE') ? (
-                                <>
-                                    {heroTitle.split('ALIVE')[0]}
-                                    <span className="text-gradient-orange">ALIVE</span>
-                                    {heroTitle.split('ALIVE')[1]}
-                                </>
-                            ) : heroTitle}
+                            WHERE WORDS<br />
+                            <span className="text-gradient-orange">COME ALIVE</span>
                         </motion.h1>
 
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.3 }}
-                            className="text-body-lg text-dark-100 max-w-xl leading-relaxed mb-10"
-                        >
-                            {heroDescription}
-                        </motion.p>
+
 
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.45 }}
-                            className="flex flex-wrap gap-4 z-20 relative"
+                            transition={{ duration: 0.6, delay: 0.3 }}
+                            className="flex flex-wrap gap-4 z-20 relative mt-8"
                         >
                             <Button
                                 variant="primary"

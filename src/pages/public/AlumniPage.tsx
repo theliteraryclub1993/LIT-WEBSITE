@@ -87,12 +87,12 @@ export function AlumniPage() {
     }, [alumniMembers])
 
     return (
-        <div className="bg-black min-h-screen text-white">
+        <div className="bg-black min-h-screen text-white w-full overflow-hidden relative">
             {/* Background cinematic glow */}
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-amber-500/5 rounded-full filter blur-[140px] pointer-events-none" />
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] max-w-full h-[600px] bg-amber-500/5 rounded-full filter blur-[140px] pointer-events-none" />
 
             {/* Hero Section */}
-            <section className="relative pt-40 pb-16 overflow-hidden">
+            <section className="relative pt-20 sm:pt-24 pb-12 overflow-hidden">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.8, rotate: 10 }}
                     animate={{
@@ -123,11 +123,11 @@ export function AlumniPage() {
                     />
                 </motion.div>
 
-                <div className="container-editorial relative z-10 text-center max-w-3xl mx-auto px-4">
+                <div className="container-editorial relative z-10 text-center max-w-3xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-caption font-semibold uppercase tracking-widest mb-4">
                         <GraduationCap size={16} /> Hall of Fame
                     </motion.div>
-                    <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-display text-white mb-6 uppercase tracking-wider">OUR ALUMNI NETWORK</motion.h1>
+                    <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-display text-white mb-6 uppercase tracking-wider break-words">OUR ALUMNI NETWORK</motion.h1>
                     <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-body text-dark-300 leading-relaxed max-w-2xl mx-auto">
                         Honoring the leaders, creators, and visionaries who built and shaped the legacy of The Literary Club across generations.
                     </motion.p>
@@ -148,7 +148,7 @@ export function AlumniPage() {
 
             {/* Grid Section */}
             <section className="pb-28">
-                <div className="container-editorial px-4">
+                <div className="container-editorial">
                     {isLoading ? (
                         <PageLoader />
                     ) : alumniMembers.length === 0 ? (
@@ -180,7 +180,7 @@ export function AlumniPage() {
                                             <span className="text-caption text-amber-400/80 font-medium">{membersInGroup.length} alumni</span>
                                         </div>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8 w-full">
                                             {membersInGroup.map((member, mIdx) => (
                                                 <motion.div
                                                     key={member.id}
@@ -189,7 +189,7 @@ export function AlumniPage() {
                                                     whileInView="visible"
                                                     viewport={{ once: true, margin: '-50px' }}
                                                     custom={mIdx + 1}
-                                                    className="group relative rounded-2xl overflow-hidden border border-amber-500/20 bg-dark-950/90 hover:border-amber-500/60 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-500 flex flex-col"
+                                                    className="group relative rounded-2xl overflow-hidden border border-amber-500/20 bg-dark-950/90 hover:border-amber-500/60 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-500 flex flex-col w-full"
                                                 >
                                                     {/* Alumni Badge */}
                                                     <div className="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-black/80 border border-amber-500/40 backdrop-blur-md flex items-center gap-1.5 text-[10px] text-amber-400 font-semibold tracking-wider uppercase">

@@ -53,7 +53,7 @@ export function MembersPage() {
     return (
         <div className="bg-black min-h-screen text-white">
             {/* Hero Section */}
-            <section className="relative pt-40 pb-16 overflow-hidden">
+            <section className="relative pt-20 sm:pt-24 pb-16 overflow-hidden">
                 {/* Cinematic background logo */}
                 <motion.div 
                     initial={{ opacity: 0, scale: 0.8, rotate: 10 }}
@@ -114,13 +114,13 @@ export function MembersPage() {
                                     <span className="text-caption text-dark-500">{activeMembers.length} active members</span>
                                 </motion.div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                                     {activeMembers.map((member, mIdx) => (
                                         <motion.div
                                             key={member.id}
                                             variants={fadeUp}
                                             custom={mIdx + 1}
-                                            className="group relative rounded-2xl overflow-hidden border border-dark-800 bg-dark-950/80 hover:border-orange-primary/40 transition-all duration-500 flex flex-col shadow-xl"
+                                            className="group relative rounded-2xl overflow-hidden border border-dark-800 bg-dark-950/80 hover:border-orange-primary/40 transition-all duration-500 flex flex-col shadow-xl w-full"
                                         >
                                             <div className="aspect-[3/4] w-full relative overflow-hidden bg-dark-900">
                                                 {member.avatar_url ? (

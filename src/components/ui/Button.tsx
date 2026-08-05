@@ -35,11 +35,11 @@ interface ButtonProps
 
 const variantStyles: Record<ButtonVariant, string> = {
     primary:
-        'bg-orange-primary text-black font-semibold hover:bg-orange-light active:bg-orange-dark border border-orange-primary',
+        'bg-gradient-to-r from-orange-primary via-orange-500 to-orange-primary text-black font-bold tracking-wide shadow-[0_0_25px_rgba(255,107,0,0.35)] hover:shadow-[0_0_35px_rgba(255,107,0,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-orange-primary/80',
     secondary:
         'bg-dark-800 text-white hover:bg-dark-700 active:bg-dark-600 border border-dark-600',
     outline:
-        'bg-transparent text-white hover:bg-dark-800 active:bg-dark-700 border border-dark-500 hover:border-dark-400',
+        'bg-dark-900/60 backdrop-blur-md text-white hover:text-orange-primary hover:border-orange-primary/60 hover:bg-dark-850 hover:shadow-[0_0_20px_rgba(255,107,0,0.15)] active:scale-[0.98] transition-all duration-300 border border-dark-700',
     ghost:
         'bg-transparent text-dark-200 hover:text-white hover:bg-dark-800/50 active:bg-dark-700/50 border border-transparent',
     danger:
@@ -55,11 +55,11 @@ const variantStyles: Record<ButtonVariant, string> = {
 }
 
 const sizeStyles: Record<ButtonSize, string> = {
-    xs: 'text-caption px-2.5 py-1 rounded-sm gap-1',
-    sm: 'text-body-sm px-3.5 py-1.5 rounded-md gap-1.5',
-    md: 'text-body-sm px-4 py-2 rounded-md gap-2',
-    lg: 'text-body px-5 py-2.5 rounded-lg gap-2.5',
-    xl: 'text-body-lg px-7 py-3.5 rounded-lg gap-3',
+    xs: 'text-caption px-3 py-1 rounded-md gap-1',
+    sm: 'text-body-sm px-4 py-1.5 rounded-lg gap-1.5 font-medium',
+    md: 'text-body-sm px-5 py-2.5 rounded-xl gap-2 font-medium',
+    lg: 'text-body px-6 py-3 rounded-xl gap-2.5 font-semibold',
+    xl: 'text-body-lg px-8 py-4 rounded-2xl gap-3 font-semibold',
 }
 
 const loaderSizes: Record<ButtonSize, number> = {

@@ -31,9 +31,24 @@ const parseBannerUrls = (banner: any): string[] => {
 }
 
 
+import { useSearchParams } from 'react-router-dom'
+
 export function EventsPage() {
-    // Tab State: 'spark' | 'malnad' | 'noesis'
-    const [activeTab, setActiveTab] = useState<'spark' | 'malnad' | 'noesis'>('spark')
+    const [searchParams] = useSearchParams()
+    const initialTabParam = searchParams.get('tab')
+    const defaultTab = (initialTabParam === 'malnad' || initialTabParam === 'noesis' || initialTabParam === 'spark') 
+        ? initialTabParam 
+        : 'malnad'
+
+    // Tab State: 'malnad' | 'noesis' | 'spark'
+    const [activeTab, setActiveTab] = useState<'malnad' | 'noesis' | 'spark'>(defaultTab)
+
+    useEffect(() => {
+        const param = searchParams.get('tab')
+        if (param === 'malnad' || param === 'noesis' || param === 'spark') {
+            setActiveTab(param)
+        }
+    }, [searchParams])
     
     // Spark state
     const [sparkSpeakers, setSparkSpeakers] = useState<SparkSpeaker[]>([])
@@ -142,7 +157,7 @@ export function EventsPage() {
     return (
         <div className="bg-black min-h-screen">
             {/* Hero Header */}
-            <section className="relative pt-36 pb-6 border-b border-dark-800 overflow-hidden">
+            <section className="relative pt-20 sm:pt-24 pb-6 border-b border-dark-800 overflow-hidden">
                 {/* Cinematic background logo */}
                 <motion.div 
                     initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
@@ -183,17 +198,6 @@ export function EventsPage() {
                     {/* Tab Navigation */}
                     <div className="flex border-b border-dark-800">
                         <button
-                            onClick={() => setActiveTab('spark')}
-                            className={cn(
-                                'px-6 py-3 text-body-sm font-semibold tracking-wider uppercase border-b-2 transition-all cursor-pointer',
-                                activeTab === 'spark'
-                                    ? 'border-orange-primary text-orange-primary bg-orange-primary/5'
-                                    : 'border-transparent text-dark-400 hover:text-white'
-                            )}
-                        >
-                            Spark Platform
-                        </button>
-                        <button
                             onClick={() => setActiveTab('malnad')}
                             className={cn(
                                 'px-6 py-3 text-body-sm font-semibold tracking-wider uppercase border-b-2 transition-all cursor-pointer',
@@ -214,6 +218,17 @@ export function EventsPage() {
                             )}
                         >
                             Noesis (E-Magazine)
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('spark')}
+                            className={cn(
+                                'px-6 py-3 text-body-sm font-semibold tracking-wider uppercase border-b-2 transition-all cursor-pointer',
+                                activeTab === 'spark'
+                                    ? 'border-orange-primary text-orange-primary bg-orange-primary/5'
+                                    : 'border-transparent text-dark-400 hover:text-white'
+                            )}
+                        >
+                            Spark Platform
                         </button>
                     </div>
                 </div>
@@ -330,6 +345,115 @@ export function EventsPage() {
                                 />
                             ) : (
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-16">
+                                    {/* Malnad Fest Flagship Editorial Intro */}
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center bg-dark-900/40 border border-dark-800 p-8 sm:p-12 rounded-2xl">
+                                        <div>
+                                            <span className="text-overline text-orange-primary tracking-mega block mb-3">The Flagship</span>
+                                            <h2 className="text-h1 text-white mb-4">THE MALNAD FEST</h2>
+                                            <p className="text-h4 text-orange-primary font-semibold tracking-wide mb-4">
+                                                NOT JUST AN EVENT. A CHAPTER.
+                                            </p>
+                                            <p className="text-body text-dark-100 leading-relaxed mb-4">
+                                                Long after the lights dim and the stages empty, the stories remain.
+                                            </p>
+                                            <p className="text-body-sm text-dark-400 leading-relaxed mb-6">
+                                                Malnad Fest is a celebration of talent, friendship, and unforgettable experiences that become part of every student's journey. From moments of fierce competition to memories that last a lifetime, it brings the entire campus together in a shared spirit of creativity, ambition, and celebration.
+                                            </p>
+                                            <div className="flex gap-8 pt-4 border-t border-dark-800">
+                                                <div>
+                                                    <h4 className="text-h3 text-white font-bold">2.5K+</h4>
+                                                    <p className="text-caption text-dark-500">Participants</p>
+                                                </div>
+                                                <div className="border-l border-dark-800 pl-8">
+                                                    <h4 className="text-h3 text-white font-bold">40+</h4>
+                                                    <p className="text-caption text-dark-500">Events</p>
+                                                </div>
+                                                <div className="border-l border-dark-800 pl-8">
+                                                    <h4 className="text-h3 text-white font-bold">1</h4>
+                                                    <p className="text-caption text-dark-500">Prestigious Sarvottam Title</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-dark-950 border border-dark-800 rounded-2xl p-6 sm:p-8 space-y-6 relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-radial-gradient from-orange-primary/5 via-transparent to-transparent pointer-events-none" />
+                                            <h3 className="text-h4 text-white">THE QUEST FOR SARVOTTAM</h3>
+                                            <p className="text-body-sm text-dark-400 leading-relaxed">
+                                                Malnad Fest is where talent meets opportunity and effort meets recognition. Every event becomes a chance to inspire, challenge limits, and leave a lasting impression.
+                                            </p>
+                                            <p className="text-body-sm text-dark-400 leading-relaxed">
+                                                The journey culminates in the pursuit of <strong>"Sarvottam"</strong> the highest accolade awarded to the branch that exemplifies excellence across every dimension.
+                                            </p>
+                                            <div className="h-0.5 bg-dark-800" />
+                                            <div className="flex items-center gap-3">
+                                                <Award className="text-orange-primary shrink-0" size={20} />
+                                                <span className="text-caption text-white font-semibold tracking-wider uppercase">Championship Title: SARVOTTAM</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* The Four Pillars Categories Grid */}
+                                    <div className="space-y-8">
+                                        <div className="text-center max-w-xl mx-auto">
+                                            <span className="text-overline text-orange-primary tracking-mega block mb-2">Categories</span>
+                                            <h2 className="text-h2 text-white">THE FOUR PILLARS</h2>
+                                            <p className="text-body-sm text-dark-400 mt-1">The events are structured across four major areas, offering something for everyone.</p>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="bg-dark-900/60 border border-dark-800 rounded-2xl p-6 relative overflow-hidden group hover:border-dark-700 transition-all duration-300">
+                                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-600 to-orange-400" />
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <h3 className="text-h3 text-white tracking-wider font-bold">BALWAAN</h3>
+                                                        <p className="text-overline text-orange-primary font-semibold tracking-widest mt-1">PUSH. PERSEVERE. PREVAIL.</p>
+                                                    </div>
+                                                    <p className="text-body-sm text-dark-200 leading-relaxed">
+                                                        Every challenge begins with a choice to step forward. Whether it's Pentathlon, Desafio, Scavenger Hunt, Game On, or Tug of War, Balwaan celebrates resilience, teamwork, and determination, alongside a host of exciting challenges that test both grit and spirit.
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-dark-900/60 border border-dark-800 rounded-2xl p-6 relative overflow-hidden group hover:border-dark-700 transition-all duration-300">
+                                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-zinc-500 to-zinc-300" />
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <h3 className="text-h3 text-white tracking-wider font-bold">BUDDHIMAAN</h3>
+                                                        <p className="text-overline text-orange-primary font-semibold tracking-widest mt-1">WHERE THINKING MAKES THE DIFFERENCE.</p>
+                                                    </div>
+                                                    <p className="text-body-sm text-dark-200 leading-relaxed">
+                                                        Not every victory is earned through strength. Some are won through ideas, strategy, and perspective. Featuring Knockout, Literati, and Toastmaster, alongside a diverse lineup of intellectual challenges, Buddhimaan rewards those who think beyond the obvious.
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-dark-900/60 border border-dark-800 rounded-2xl p-6 relative overflow-hidden group hover:border-dark-700 transition-all duration-300">
+                                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-zinc-400" />
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <h3 className="text-h3 text-white tracking-wider font-bold">DARPAN</h3>
+                                                        <p className="text-overline text-orange-primary font-semibold tracking-widest mt-1">LET YOUR PASSION BE SEEN.</p>
+                                                    </div>
+                                                    <p className="text-body-sm text-dark-200 leading-relaxed">
+                                                        Some moments deserve more than applause they deserve to be remembered. From Antakshari, Campus Beats, and Naa Kanda Malnad to a variety of crowd-favourite performances, Darpan celebrates creativity, culture, and the joy of expression.
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-dark-900/60 border border-dark-800 rounded-2xl p-6 relative overflow-hidden group hover:border-dark-700 transition-all duration-300">
+                                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-zinc-700 to-orange-500" />
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <h3 className="text-h3 text-white tracking-wider font-bold">KALAKRUTHI</h3>
+                                                        <p className="text-overline text-orange-primary font-semibold tracking-widest mt-1">EVERY CREATION HAS A STORY.</p>
+                                                    </div>
+                                                    <p className="text-body-sm text-dark-200 leading-relaxed">
+                                                        Great ideas begin with imagination. Through Art-a-thon and Chitrakatha, plus a collection of creative experiences, Kalakruthi transforms imagination into artistry and celebrates originality in every form.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     {/* Hero / Banner Slideshow */}
                                     <div className="relative rounded-3xl overflow-hidden border border-dark-800 bg-dark-950/40 group">
                                         <SlideshowCarousel
@@ -390,8 +514,9 @@ export function EventsPage() {
                                                         <div className="space-y-2 flex-1">
                                                             <p className="text-caption text-dark-500 uppercase tracking-wider font-mono">Contacts</p>
                                                             {festInfo.contacts.map((c: any, idx) => (
-                                                                <div key={idx} className="text-body text-white font-medium">
-                                                                    <span className="text-dark-400 text-body-sm">{c.name}:</span> {c.contact}
+                                                                <div key={idx} className="text-body text-white font-medium mb-3">
+                                                                    <div className="text-dark-400 text-body-sm">{c.name}:</div>
+                                                                    <div className="text-white font-semibold font-mono tracking-wide">{c.contact}</div>
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -488,6 +613,52 @@ export function EventsPage() {
                                 <PageLoader label="Loading magazine issues..." />
                             ) : (
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-16">
+                                    {/* Editorial Noesis Intro */}
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center bg-dark-900/40 border border-dark-800 p-8 sm:p-12 rounded-2xl">
+                                        <div>
+                                            <span className="text-overline text-orange-primary tracking-mega block mb-3">The E-Magazine</span>
+                                            <h2 className="text-h1 text-white mb-4">NOESIS</h2>
+                                            <p className="text-h4 text-orange-primary font-semibold tracking-wide mb-4">
+                                                WORDS · BRUSH STROKES · PIXELS
+                                            </p>
+                                            <p className="text-body text-dark-100 leading-relaxed mb-4">
+                                                Every story begins with a thought, and every thought deserves a place to be heard.
+                                            </p>
+                                            <p className="text-body-sm text-dark-400 leading-relaxed mb-6">
+                                                <strong>Noesis</strong> is the Literary Club's annual magazine that celebrates imagination in all its forms from poetry and prose to artwork and photography. It is a collection of voices, perspectives, and creativity that reflects the spirit of Malnad College of Engineering.
+                                            </p>
+                                            <div className="flex gap-8 pt-4 border-t border-dark-800">
+                                                <div>
+                                                    <h4 className="text-h3 text-white font-bold">5th</h4>
+                                                    <p className="text-caption text-dark-500">Edition</p>
+                                                </div>
+                                                <div className="border-l border-dark-800 pl-8">
+                                                    <h4 className="text-h3 text-white font-bold">100+</h4>
+                                                    <p className="text-caption text-dark-500">Contributions</p>
+                                                </div>
+                                                <div className="border-l border-dark-800 pl-8">
+                                                    <h4 className="text-h3 text-white font-bold">Annual</h4>
+                                                    <p className="text-caption text-dark-500">Publication</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-dark-950 border border-dark-800 rounded-2xl p-6 sm:p-8 space-y-6 relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-radial-gradient from-orange-primary/5 via-transparent to-transparent pointer-events-none" />
+                                            <h3 className="text-h4 text-white">VOICES OF MALNAD</h3>
+                                            <p className="text-body-sm text-dark-400 leading-relaxed">
+                                                A platform where budding writers, poets, artists, and thinkers showcase their creative skills and perspectives to the entire campus community.
+                                            </p>
+                                            <p className="text-body-sm text-dark-400 leading-relaxed">
+                                                Published annually by The Literary Club, capturing the essence of student life, culture, and artistic expression at Malnad College of Engineering.
+                                            </p>
+                                            <div className="h-0.5 bg-dark-800" />
+                                            <div className="flex items-center gap-3">
+                                                <Award className="text-orange-primary shrink-0" size={20} />
+                                                <span className="text-caption text-white font-semibold tracking-wider uppercase">ANNUAL LITERARY MAGAZINE: NOESIS</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                     {/* Current Edition Section */}
                                     {currentEdition && (
                                         <div className="space-y-6">

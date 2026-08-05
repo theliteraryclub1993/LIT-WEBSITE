@@ -89,7 +89,7 @@ export function AuditionsPage() {
 
     return (
         <div className="bg-black min-h-screen">
-            <section className="relative pt-40 pb-12 overflow-hidden">
+            <section className="relative pt-20 sm:pt-24 pb-12 overflow-hidden">
                 {/* Cinematic background logo */}
                 <motion.div 
                     initial={{ opacity: 0, scale: 0.8, rotate: -8 }}
@@ -133,7 +133,7 @@ export function AuditionsPage() {
             <section className="pb-24">
                 <div className="container-editorial">
                     {isLoading ? <PageLoader /> : !auditions?.length ? (
-                        <EmptyState icon={<Mic size={48} strokeWidth={1.5} />} title="No active auditions right now" description="Check back later for new opportunities." />
+                        <EmptyState icon={<Mic size={48} strokeWidth={1.5} />} title="COMING SOON" description="Auditions for the next batch will open soon. Stay tuned!" />
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
                             {auditions.map((cycle, i) => (

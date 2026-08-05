@@ -16,7 +16,7 @@ export function GalleryPage() {
 
     return (
         <div className="bg-black min-h-screen">
-            <section className="relative pt-40 pb-12 overflow-hidden">
+            <section className="relative pt-28 sm:pt-32 pb-12 overflow-hidden">
                 {/* Cinematic background logo */}
                 <motion.div 
                     initial={{ opacity: 0, scale: 0.8, rotate: 5 }}

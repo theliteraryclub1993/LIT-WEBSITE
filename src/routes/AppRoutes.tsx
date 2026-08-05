@@ -56,7 +56,6 @@ export function AppRoutes() {
         <Route path="/events/:slug" element={<EventDetailsPage />} />
         <Route path="/team" element={<MembersPage />} />
         <Route path="/alumni" element={<AlumniPage />} />
-        <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/auditions" element={<AuditionsPage />} />
         <Route path="/contact" element={<ContactPage />} />
       </Route>

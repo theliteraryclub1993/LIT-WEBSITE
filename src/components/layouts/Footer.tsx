@@ -7,7 +7,7 @@ import { BrandIcons } from '@/components/ui'
  * Minimized editorial footer showing only copyright, socials, and founded year.
  */
 export function Footer() {
-    const [instagramUrl, setInstagramUrl] = useState<string>('https://linktr.ee/lit1993?utm_source=qr_code')
+    const [instagramUrl, setInstagramUrl] = useState<string>('https://linktr.ee/lit1993.club')
     const [youtubeUrl, setYoutubeUrl] = useState<string>('https://www.youtube.com/@theliteraryclub1971')
 
     useEffect(() => {

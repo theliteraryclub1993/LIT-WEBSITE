@@ -16,7 +16,7 @@ const fadeUp = {
 
 export function ContactPage() {
     const [contactEmail, setContactEmail] = useState<string>(brand.contact.email)
-    const [instagramUrl, setInstagramUrl] = useState<string>('https://linktr.ee/lit1993?utm_source=qr_code')
+    const [instagramUrl, setInstagramUrl] = useState<string>('https://linktr.ee/lit1993.club')
     const [youtubeUrl, setYoutubeUrl] = useState<string>('https://www.youtube.com/@theliteraryclub1971')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isSubmitted, setIsSubmitted] = useState(false)
@@ -78,7 +78,7 @@ export function ContactPage() {
 
         setIsSubmitting(true)
         try {
-            const targetMail = contactEmail || 'theliteraryclubmce@gmail.com'
+            const targetMail = 'theliteraryclubmce@gmail.com'
             const response = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(targetMail)}`, {
                 method: 'POST',
                 headers: {
@@ -110,7 +110,7 @@ export function ContactPage() {
         } catch (err) {
             console.error('Contact form submission error:', err)
             toast.error('Network error. Opening email client fallback...')
-            const mailtoUrl = `mailto:${contactEmail || 'theliteraryclubmce@gmail.com'}?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\n\n${formData.message}`)}`
+            const mailtoUrl = `mailto:theliteraryclubmce@gmail.com?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\n\n${formData.message}`)}`
             window.open(mailtoUrl, '_blank')
         } finally {
             setIsSubmitting(false)
@@ -132,13 +132,13 @@ export function ContactPage() {
             {/* Background elements */}
             <div className="absolute inset-0 bg-gradient-to-b from-dark-950 via-black to-black pointer-events-none" />
 
-            <section className="relative pt-40 pb-24 overflow-hidden z-10">
+            <section className="relative pt-20 sm:pt-24 pb-16 overflow-hidden z-10">
                 {/* Cinematic glow */}
                 <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-orange-primary/5 rounded-full filter blur-[120px] pointer-events-none" />
 
                 <div className="container-editorial max-w-6xl mx-auto px-4">
                     {/* Header */}
-                    <div className="text-center max-w-3xl mx-auto mb-16">
+                    <div className="text-center max-w-3xl mx-auto mb-10">
                         <motion.span
                             variants={fadeUp}
                             initial="hidden"
@@ -206,16 +206,27 @@ export function ContactPage() {
                             </div>
 
                             {/* Location Card */}
-                            <div className="p-6 rounded-xl bg-dark-900/60 border border-dark-800 backdrop-blur-sm hover:border-dark-700 transition-all group">
+                            <a
+                                href="https://maps.google.com/?q=Malnad+College+of+Engineering+Hassan+Karnataka+573202"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block p-6 rounded-xl bg-dark-900/60 border border-dark-800 backdrop-blur-sm hover:border-orange-primary/50 hover:bg-orange-primary/5 transition-all group cursor-pointer"
+                                title="Open Malnad College of Engineering on Google Maps"
+                            >
                                 <div className="flex items-start gap-4">
                                     <div className="w-12 h-12 rounded-lg bg-orange-subtle border border-orange-border flex items-center justify-center text-orange-primary shrink-0 group-hover:scale-110 transition-transform">
                                         <MapPin size={22} />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <h4 className="text-overline text-dark-500 uppercase tracking-widest">
-                                            Our Base
-                                        </h4>
-                                        <p className="text-body-md text-white">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-overline text-dark-500 uppercase tracking-widest">
+                                                Our Base
+                                            </h4>
+                                            <span className="text-[10px] text-orange-primary uppercase tracking-wider font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                                                Open Maps ↗
+                                            </span>
+                                        </div>
+                                        <p className="text-body-md text-white group-hover:text-orange-primary transition-colors">
                                             Malnad College of Engineering
                                         </p>
                                         <p className="text-caption text-dark-400">
@@ -223,7 +234,7 @@ export function ContactPage() {
                                         </p>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
 
                             {/* Socials Grid */}
                             <div className="grid grid-cols-2 gap-4">

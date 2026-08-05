@@ -2,7 +2,7 @@ export const brand = {
     name: 'The Literary Club',
     tagline: 'Where Words Come Alive',
     description:
-        'The Literary Club (LIT) was established in 1993 and is one of the oldest and most pivotal clubs at Malnad College of Engineering. Comprising students from all years, the club focuses on celebrating the interests and creative talents of each and every person.',
+        'A legacy of imagination at Malnad College of Engineering. Empowering students to think creatively, communicate confidently, and leave a lasting mark through literature and expression.',
     founded: '1993',
     location: 'India',
 
@@ -12,7 +12,7 @@ export const brand = {
     },
 
     social: [
-        { name: 'Instagram', url: 'https://linktr.ee/lit1993?utm_source=qr_code', icon: 'instagram' as const },
+        { name: 'Instagram', url: 'https://linktr.ee/lit1993.club', icon: 'instagram' as const },
         { name: 'YouTube', url: 'https://www.youtube.com/@theliteraryclub1971', icon: 'youtube' as const },
     ],
 
@@ -57,7 +57,6 @@ export const brand = {
             { label: 'Events', path: '/events' },
             { label: 'Team', path: '/team' },
             { label: 'Alumni Network', path: '/alumni' },
-            { label: 'Gallery', path: '/gallery' },
             { label: 'Auditions', path: '/auditions' },
         ],
         admin: [

@@ -83,7 +83,7 @@ export function Navbar() {
         <>
             <header
                 className={cn(
-                    'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+                    'fixed top-0 left-0 right-0 w-full max-w-full z-50 transition-all duration-300',
                     isScrolled ? 'glass-darker shadow-lg' : 'bg-transparent'
                 )}
             >
@@ -131,7 +131,7 @@ export function Navbar() {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                                const followLink = brand.social.find(s => s.name === 'Instagram')?.url || 'https://linktr.ee/lit1993?utm_source=qr_code';
+                                const followLink = brand.social.find(s => s.name === 'Instagram')?.url || 'https://linktr.ee/lit1993.club';
                                 window.open(followLink, '_blank');
                             }}
                         >
@@ -161,7 +161,7 @@ export function Navbar() {
             {/* Mobile Menu Overlay */}
             <AnimatePresence>
                 {isMobileOpen && (
-                    <div className="fixed inset-0 z-40 lg:hidden">
+                    <div className="fixed inset-0 z-50 lg:hidden">
                         {/* Backdrop */}
                         <motion.div
                             initial={{ opacity: 0 }}
