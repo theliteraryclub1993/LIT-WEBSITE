@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Award } from 'lucide-react'
 import { getSettingsByCategory } from '@/services/settingsService'
 
 const fadeUp = {
@@ -11,33 +10,6 @@ const fadeUp = {
         transition: { delay: i * 0.1, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] as any },
     }),
 }
-
-const categories = [
-    {
-        title: 'BALWAAN',
-        subtitle: 'Push. Persevere. Prevail.',
-        desc: "Every challenge begins with a choice to step forward. Whether it's Pentathlon, Desafio, Scavenger Hunt, Game On, or Tug of War, Balwaan celebrates resilience, teamwork, and determination, alongside a host of exciting challenges that test both grit and spirit.",
-        accent: 'from-orange-600 to-orange-400'
-    },
-    {
-        title: 'BUDDHIMAAN',
-        subtitle: 'Where Thinking Makes the Difference.',
-        desc: "Not every victory is earned through strength. Some are won through ideas, strategy, and perspective. Featuring Knockout, Literati, and Toastmaster, alongside a diverse lineup of intellectual challenges, Buddhimaan rewards those who think beyond the obvious.",
-        accent: 'from-zinc-500 to-zinc-300'
-    },
-    {
-        title: 'DARPAN',
-        subtitle: 'Let Your Passion Be Seen.',
-        desc: "Some moments deserve more than applause they deserve to be remembered. From Antakshari, Campus Beats, and Naa Kanda Malnad to a variety of crowd-favourite performances, Darpan celebrates creativity, culture, and the joy of expression.",
-        accent: 'from-orange-500 to-zinc-400'
-    },
-    {
-        title: 'KALAKRUTHI',
-        subtitle: 'Every Creation Has a Story.',
-        desc: "Great ideas begin with imagination. Through Art-a-thon and Chitrakatha, plus a collection of creative experiences, Kalakruthi transforms imagination into artistry and celebrates originality in every form.",
-        accent: 'from-zinc-700 to-orange-500'
-    }
-]
 
 export function AboutPage() {
     const [aboutSettings, setAboutSettings] = useState<any>({})
@@ -53,8 +25,6 @@ export function AboutPage() {
     const aboutDescription = aboutSettings.description || 'Established in 1993, Since then The Literary Club stands as a legacy of imagination at MCE,Empowering students to think creatively, communicate confidently, and leave a lasting mark through the power of literature and expression.'
     const aboutMotto = aboutSettings.motto || 'To foster the talents and assorted interests of blooming engineers with creative skills and a penchant for literature.'
     const aboutVision = aboutSettings.vision || 'Comprising students from all years, we carry forward a glory that transcends generations. We focus on celebrating the unique interests of every individual, creating a community where creativity knows no bounds.'
-    const aboutMission = aboutSettings.mission || 'To continuously host enriching poetry sessions, workshops, debates, and public speaking programs.'
-    const aboutObjectives = aboutSettings.objectives || 'Build public speaking confidence; Create high quality publication editions; Organise intercollegiate fests.'
 
     return (
         <div className="bg-black min-h-screen">

@@ -123,9 +123,6 @@ export function HomePage() {
     const opacity = useTransform(scrollY, [0, 400], [1, 0])
     const y = useTransform(scrollY, [0, 400], [0, -50])
 
-    const heroTitle = homeSettings.heroTitle || 'WHERE WORDS COME ALIVE'
-    const heroDescription = homeSettings.heroSubtext || 'Legacy of imagination at Malnad College of Engineering. Empowering students to think creatively, communicate confidently, and leave a lasting mark.'
-
     return (
         <div className="bg-black">
             {/* ==================== HERO ==================== */}
