@@ -1,4 +1,5 @@
 export const ROLE_ORDER = [
+    'Staff Convenor',
     'Student President',
     'Student Vice President',
     'Joint Secretaries',
@@ -26,6 +27,22 @@ export const isAlumniMember = <T extends { department?: string | null; role?: st
     return dept === 'alumni' || dept.startsWith('alumni -') || dept.startsWith('alumni-') || role.includes('alumn') || role.includes('former')
 }
 
+export const isStaffConvenor = <T extends { department?: string | null; role?: string | null }>(member: T): boolean => {
+    if (!member) return false
+    const dept = (member.department || '').toLowerCase().trim()
+    const role = (member.role || '').toLowerCase().trim()
+    return (
+        role.includes('conven') ||
+        role.includes('faculty') ||
+        (role.includes('staff') && !role.includes('student')) ||
+        dept.includes('conven') ||
+        dept.includes('faculty') ||
+        dept === 'staff' ||
+        dept === 'staff convenor' ||
+        dept === 'staff convenors'
+    )
+}
+
 /**
  * Extract the passed-out year from an alumni member's department field.
  * e.g. "Alumni - 2024" → 2024, "Alumni" → null
@@ -38,6 +55,7 @@ export const getAlumniBatchYear = (department: string | null | undefined): numbe
 
 export const normalizeRole = (role: string): string => {
     const r = role.toLowerCase().trim()
+    if (r.includes('conven') || r.includes('faculty') || (r.includes('staff') && !r.includes('student'))) return 'staff convenor'
     if (r.includes('alumn') || r.includes('former')) return 'alumni'
     if (r.includes('president') && !r.includes('vice')) return 'student president'
     if (r.includes('vice president') || r.includes('vice-president')) return 'student vice president'

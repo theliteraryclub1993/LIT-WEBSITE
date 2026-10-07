@@ -8,7 +8,7 @@ import { STORAGE_BUCKETS, formatFileSize, MAX_FILE_SIZES } from '@/utils/constan
 import { isImageFile, processImageFile } from '@/utils/imageUtils'
 import type { TeamMember, SocialLinks } from '@/types'
 import { Loader2, Upload, X, Globe } from 'lucide-react'
-import { getAlumniBatchYear } from '@/utils/teamSorter'
+import { getAlumniBatchYear, isStaffConvenor } from '@/utils/teamSorter'
 
 const schema = z.object({
     name: z.string().min(1, 'Name is required').max(100, 'Max 100 characters'),
@@ -181,7 +181,7 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
                 <h4 className="text-label text-dark-200 uppercase tracking-widest">Basic Information</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input label="Full Name *" placeholder="Arjun Mehta" error={errors.name?.message as any} {...register('name')} />
-                    <Input label="Role / Title *" placeholder="President, Content Head..." error={errors.role?.message as any} {...register('role')} />
+                    <Input label="Role / Title *" placeholder="Staff Convenor, President, Editorial Head..." error={errors.role?.message as any} {...register('role')} />
                 </div>
             </div>
 
@@ -250,9 +250,10 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
                     label="Department"
                     placeholder="Select or type a department"
                     options={[
+                        { label: 'Staff Convenors (Faculty Advisors)', value: 'Staff Convenors' },
                         { label: 'Alumni (Past Member / Graduated)', value: 'Alumni' },
                         ...Array.from(new Set(departments))
-                            .filter(d => d && !d.toLowerCase().startsWith('alumni'))
+                            .filter(d => d && !d.toLowerCase().startsWith('alumni') && d.toLowerCase() !== 'staff convenors')
                             .map(d => ({ label: d, value: d })),
                         { label: '— Add New Department —', value: '__new__' },
                     ]}
@@ -267,6 +268,11 @@ export function TeamMemberForm({ initialData, departments, onSubmit, isLoading }
                         }
                     }}
                 />
+                {isStaffConvenor({ role: watch('role'), department: watch('department') }) && (
+                    <p className="text-caption text-amber-400/90 bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/20">
+                        🏛️ <strong>Staff Convenor:</strong> This member will be featured in the distinguished <em>Staff Convenors</em> section before the active student core team on the public website.
+                    </p>
+                )}
                 {watch('department') === 'Alumni' && (
                     <div className="space-y-3">
                         <Input

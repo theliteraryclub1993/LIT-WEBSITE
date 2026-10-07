@@ -8,7 +8,7 @@ import { TeamMemberForm } from '@/components/forms/TeamMemberForm'
 import { Modal, Input, Button, Badge, PageLoader, EmptyState } from '@/components/ui'
 import toast from 'react-hot-toast'
 import type { TeamMember } from '@/types'
-import { sortMembersByRole, isAlumniMember } from '@/utils/teamSorter'
+import { sortMembersByRole, isAlumniMember, isStaffConvenor } from '@/utils/teamSorter'
 
 export function TeamPage() {
     const queryClient = useQueryClient()
@@ -100,9 +100,72 @@ export function TeamPage() {
     })
 
     // Handlers
+    const [isSeedingStaff, setIsSeedingStaff] = useState(false)
+
     const openCreateModal = () => {
         setEditingMember(null)
         setIsModalOpen(true)
+    }
+
+    const openCreateStaffModal = () => {
+        setEditingMember({
+            id: '',
+            name: '',
+            role: 'Staff Convenor',
+            department: 'Staff Convenors',
+            avatar_url: null,
+            bio: 'Faculty Mentor & Staff Convenor at The Literary Club, MCE.',
+            order_index: 0,
+            is_active: true,
+            social_links: null,
+            user_id: null,
+            created_at: '',
+            updated_at: '',
+        } as any)
+        setIsModalOpen(true)
+    }
+
+    const handleSeedPlaceholders = async () => {
+        if (!user?.id) {
+            toast.error('You must be logged in to add staff convenors.')
+            return
+        }
+        setIsSeedingStaff(true)
+        try {
+            const res1 = await teamService.createWithLog({
+                name: 'Staff Convenor 1',
+                role: 'Staff Convenor',
+                department: 'Staff Convenors',
+                bio: 'Faculty Mentor & Staff Convenor guiding the literary and cultural initiatives at MCE.',
+                order_index: 0,
+                is_active: true,
+                avatar_url: null,
+                social_links: null,
+                user_id: null,
+            }, user.id)
+            if (res1.error) throw new Error(res1.error)
+
+            const res2 = await teamService.createWithLog({
+                name: 'Staff Convenor 2',
+                role: 'Staff Convenor',
+                department: 'Staff Convenors',
+                bio: 'Faculty Mentor & Staff Convenor guiding the literary and cultural initiatives at MCE.',
+                order_index: 0,
+                is_active: true,
+                avatar_url: null,
+                social_links: null,
+                user_id: null,
+            }, user.id)
+            if (res2.error) throw new Error(res2.error)
+
+            toast.success('Added 2 placeholder Staff Convenors! You can now edit them directly.')
+            queryClient.invalidateQueries({ queryKey: ['team'] })
+            queryClient.invalidateQueries({ queryKey: ['team-departments'] })
+        } catch (err: any) {
+            toast.error(err.message || 'Failed to add placeholder convenors')
+        } finally {
+            setIsSeedingStaff(false)
+        }
     }
 
     const openEditModal = (member: TeamMember) => {
@@ -139,6 +202,10 @@ export function TeamPage() {
         return (membersData?.data || []).filter(m => m.is_active && !isAlumniMember(m)).length
     }, [membersData?.data])
 
+    const hasStaffConvenors = useMemo(() => {
+        return (membersData?.data || []).some(isStaffConvenor)
+    }, [membersData?.data])
+
     const totalPages = membersData?.count ? Math.ceil(membersData.count / pageSize) : 0
 
     const sortedMembers = useMemo(() => {
@@ -154,10 +221,34 @@ export function TeamPage() {
                     <h1 className="text-h2 text-white">Team</h1>
                     <p className="text-body-sm text-dark-400 mt-1">Manage team members and their public profiles.</p>
                 </div>
-                <Button variant="primary" leftIcon={<Plus size={16} />} onClick={openCreateModal}>
-                    Add Member
-                </Button>
+                <div className="flex items-center gap-3">
+                    <Button variant="outline" leftIcon={<Plus size={16} />} onClick={openCreateStaffModal}>
+                        Add Staff Convenor
+                    </Button>
+                    <Button variant="primary" leftIcon={<Plus size={16} />} onClick={openCreateModal}>
+                        Add Member
+                    </Button>
+                </div>
             </div>
+
+            {/* Placeholder Seeding Banner */}
+            {!hasStaffConvenors && !membersLoading && !departmentFilter && !search && (
+                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-body-sm text-amber-200">
+                    <div className="flex items-center gap-2.5">
+                        <span className="text-lg">🏛️</span>
+                        <span>No Staff Convenors in the database yet. Click to insert 2 editable placeholder convenors.</span>
+                    </div>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-amber-500/40 text-amber-300 hover:bg-amber-500/20 whitespace-nowrap"
+                        onClick={handleSeedPlaceholders}
+                        isLoading={isSeedingStaff}
+                    >
+                        Add Placeholder Convenors
+                    </Button>
+                </div>
+            )}
 
             {/* Stats + Filters */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
